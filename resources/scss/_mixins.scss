@@ -1,0 +1,22 @@
+@use './variables' as *;
+
+@mixin container {
+	width: min(100% - 2rem, $container-width);
+	margin-inline: auto;
+}
+
+@mixin button-primary {
+	border: 0;
+	border-radius: $radius-md;
+	background: linear-gradient(120deg, $color-primary, $color-primary-dark);
+	color: #fff;
+	font-weight: 600;
+	padding: 0.7rem 1.1rem;
+}
+
+@mixin card {
+	background: $color-surface;
+	border: 1px solid $color-border;
+	border-radius: $radius-lg;
+	box-shadow: $shadow-soft;
+}

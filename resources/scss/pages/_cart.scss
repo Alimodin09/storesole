@@ -1,0 +1,262 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.page--cart {
+	padding: 2.25rem 0 4rem;
+
+	.container {
+		background: transparent;
+		border: 0;
+		box-shadow: none;
+		padding: 0;
+	}
+}
+
+.cart-shell {
+	@include card;
+	padding: 1.6rem;
+}
+
+.cart-header {
+	margin-bottom: 1.25rem;
+
+	h1 {
+		margin: 0;
+		font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+	}
+
+	p {
+		margin: 0.5rem 0 0;
+		color: $color-muted;
+		line-height: 1.55;
+	}
+}
+
+.empty-cart {
+	@include card;
+	padding: 2rem;
+	text-align: center;
+
+	p {
+		margin: 0 0 1rem;
+		font-size: 1rem;
+		color: $color-muted;
+	}
+}
+
+.cart-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1.65fr) minmax(260px, 1fr);
+	gap: 1.3rem;
+	align-items: start;
+}
+
+.cart-items {
+	display: grid;
+	gap: 1rem;
+}
+
+.cart-item {
+	@include card;
+	padding: 0.95rem;
+	display: grid;
+	grid-template-columns: 92px minmax(190px, 1fr) auto auto auto;
+	gap: 1rem;
+	align-items: center;
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	background: #fff;
+	transition: box-shadow 0.25s ease, transform 0.25s ease;
+
+	&:hover {
+		box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+		transform: translateY(-2px);
+	}
+}
+
+.item-image {
+	width: 92px;
+	height: 92px;
+	border-radius: 12px;
+	object-fit: cover;
+	background: #edf3ff;
+}
+
+.item-details {
+	h3 {
+		margin: 0;
+		font-size: 1rem;
+		line-height: 1.35;
+	}
+}
+
+.item-meta {
+	margin: 0.3rem 0 0;
+	font-size: 0.83rem;
+	color: $color-muted;
+	line-height: 1.35;
+}
+
+.item-price {
+	margin: 0.45rem 0 0;
+	font-weight: 700;
+	color: $color-primary-dark;
+	font-size: 0.95rem;
+}
+
+.item-quantity {
+	display: inline-flex;
+	align-items: center;
+	border: 1px solid $color-border;
+	border-radius: 999px;
+	overflow: hidden;
+	background: #fff;
+	box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.02);
+
+	button {
+		width: 34px;
+		height: 34px;
+		border: 0;
+		background: #f3f6fd;
+		cursor: pointer;
+		font-size: 1rem;
+		font-weight: 700;
+		color: $color-text;
+
+		&:hover {
+			background: #e9effc;
+		}
+
+		&:active {
+			transform: scale(0.97);
+		}
+	}
+
+	input {
+		width: 42px;
+		height: 34px;
+		border: 0;
+		text-align: center;
+		font: inherit;
+		font-weight: 700;
+		color: $color-text;
+		background: #fff;
+	}
+}
+
+.item-total {
+	margin: 0;
+	font-weight: 800;
+	color: $color-text;
+	font-size: 1rem;
+	min-width: 72px;
+	text-align: right;
+}
+
+.remove-btn {
+	border: 1px solid #fecaca;
+	background: #fff1f2;
+	color: #b91c1c;
+	padding: 0.5rem 0.7rem;
+	border-radius: 8px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover {
+		background: #ffe4e6;
+	}
+}
+
+.cart-summary {
+	@include card;
+	padding: 1.2rem;
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	background: #fff;
+	position: sticky;
+	top: 88px;
+
+	h3 {
+		margin: 0;
+		font-size: 1.1rem;
+	}
+}
+
+.summary-note {
+	margin: 0.6rem 0 1rem;
+	font-size: 0.85rem;
+	line-height: 1.5;
+	color: $color-muted;
+	background: #f5f8ff;
+	border: 1px solid #dbeafe;
+	padding: 0.55rem 0.65rem;
+	border-radius: 9px;
+}
+
+.summary-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.48rem 0;
+	font-size: 0.95rem;
+
+	&.total {
+		margin-top: 0.5rem;
+		padding-top: 0.8rem;
+		border-top: 1px solid $color-border;
+		font-size: 1.08rem;
+		font-weight: 800;
+	}
+}
+
+.summary-cta {
+	width: 100%;
+	margin-top: 0.75rem;
+	text-align: center;
+}
+
+@media (max-width: 980px) {
+	.page--cart {
+		padding-top: 1.6rem;
+	}
+
+	.cart-layout {
+		grid-template-columns: 1fr;
+	}
+
+	.cart-summary {
+		position: static;
+	}
+}
+
+@media (max-width: 720px) {
+	.cart-shell {
+		padding: 0.95rem;
+	}
+
+	.cart-item {
+		grid-template-columns: 78px minmax(0, 1fr);
+		gap: 0.7rem;
+	}
+
+	.item-image {
+		width: 78px;
+		height: 78px;
+	}
+
+	.item-quantity {
+		grid-column: 1 / -1;
+		justify-self: start;
+		margin-top: 0.2rem;
+	}
+
+	.item-total {
+		grid-column: 1 / -1;
+		text-align: left;
+	}
+
+	.remove-btn {
+		grid-column: 1 / -1;
+		justify-self: start;
+		margin-top: -0.1rem;
+	}
+}
