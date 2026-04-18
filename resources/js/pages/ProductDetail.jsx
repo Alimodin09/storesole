@@ -5,6 +5,12 @@ import { addCartItem } from '../utils/cart.js';
 import { formatPeso, getProductImageUrl } from '../utils/format.js';
 import { isAuthenticated } from '../utils/auth.js';
 
+const trustItems = [
+	{ label: 'Free Delivery', text: 'On orders over P1,000.' },
+	{ label: 'Easy Returns', text: '30-day return support.' },
+	{ label: 'Secure Payment', text: 'Safe checkout protection.' }
+];
+
 export default function ProductDetail() {
 	const { id } = useParams();
 	const navigate = useNavigate();
@@ -24,46 +30,25 @@ export default function ProductDetail() {
 
 			try {
 				const { data } = await api.get(`/products/${id}`);
-
-				if (active) {
-					setProduct(data);
-				}
+				if (active) setProduct(data);
 			} catch (error) {
-				if (active) {
-					setErrorMessage(error?.response?.data?.message || 'Unable to load product details.');
-				}
+				if (active) setErrorMessage(error?.response?.data?.message || 'Unable to load product details.');
 			} finally {
-				if (active) {
-					setLoading(false);
-				}
+				if (active) setLoading(false);
 			}
 		};
 
 		fetchProduct();
-
-		return () => {
-			active = false;
-		};
+		return () => { active = false; };
 	}, [id]);
 
 	const productImages = useMemo(() => {
-		if (!product) {
-			return [];
-		}
+		if (!product) return [];
 
-		const relationImages = Array.isArray(product.product_images)
-			? product.product_images.map((item) => item.image_path)
-			: [];
-
+		const relationImages = Array.isArray(product.product_images) ? product.product_images.map((item) => item.image_path) : [];
 		const baseImages = Array.isArray(product.image_paths) ? product.image_paths : [];
-
 		return [...new Set([product.image, ...baseImages, ...relationImages].filter(Boolean))];
 	}, [product]);
-
-	const activeImageIndex = useMemo(() => {
-		if (!activeImage || productImages.length === 0) return 0;
-		return productImages.indexOf(activeImage);
-	}, [activeImage, productImages]);
 
 	useEffect(() => {
 		if (productImages.length === 0) {
@@ -71,42 +56,13 @@ export default function ProductDetail() {
 			return;
 		}
 
-		setActiveImage((current) => {
-			if (current && productImages.includes(current)) {
-				return current;
-			}
-
-			return productImages[0];
-		});
+		setActiveImage((current) => (current && productImages.includes(current) ? current : productImages[0]));
 	}, [productImages]);
 
-	const goToPreviousImage = () => {
-		if (productImages.length === 0) return;
-
-		const newIndex = activeImageIndex === 0 ? productImages.length - 1 : activeImageIndex - 1;
-		setActiveImage(productImages[newIndex]);
-	};
-
-	const goToNextImage = () => {
-		if (productImages.length === 0) return;
-
-		const newIndex = activeImageIndex === productImages.length - 1 ? 0 : activeImageIndex + 1;
-		setActiveImage(productImages[newIndex]);
-	};
-
 	const availableSizes = useMemo(() => {
-		if (!product) {
-			return [];
-		}
-
-		if (Array.isArray(product.sizes) && product.sizes.length > 0) {
-			return product.sizes;
-		}
-
-		if (product.size) {
-			return [product.size];
-		}
-
+		if (!product) return [];
+		if (Array.isArray(product.sizes) && product.sizes.length > 0) return product.sizes;
+		if (product.size) return [product.size];
 		return [];
 	}, [product]);
 
@@ -118,10 +74,26 @@ export default function ProductDetail() {
 		}
 	}, [availableSizes]);
 
-	const handleAddToCart = () => {
-		if (!product) {
+	const hasMultipleImages = productImages.length > 1;
+
+	const goToImage = (direction) => {
+		if (!hasMultipleImages) {
 			return;
 		}
+
+		setActiveImage((current) => {
+			const currentIndex = productImages.indexOf(current);
+			const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+			const nextIndex = direction === 'next'
+				? (safeIndex + 1) % productImages.length
+				: (safeIndex - 1 + productImages.length) % productImages.length;
+
+			return productImages[nextIndex];
+		});
+	};
+
+	const handleAddToCart = () => {
+		if (!product) return;
 
 		if (!isAuthenticated()) {
 			window.alert('Please log in first before adding to cart.');
@@ -141,10 +113,37 @@ export default function ProductDetail() {
 			size: selectedSize || product.size || '',
 			quantity,
 			stock: product.stock,
-			image: product.image,
+			image: product.image
 		});
 
 		navigate('/cart');
+	};
+
+	const handleBuyNow = () => {
+		if (!product) return;
+
+		if (!isAuthenticated()) {
+			window.alert('Please log in first before checkout.');
+			navigate('/login');
+			return;
+		}
+
+		if (availableSizes.length > 0 && !selectedSize) {
+			window.alert('Please select a size.');
+			return;
+		}
+
+		addCartItem({
+			id: product.id,
+			name: product.name,
+			price: Number(product.price),
+			size: selectedSize || product.size || '',
+			quantity,
+			stock: product.stock,
+			image: product.image
+		});
+
+		navigate('/checkout');
 	};
 
 	if (loading) {
@@ -191,53 +190,29 @@ export default function ProductDetail() {
 	const imageUrl = getProductImageUrl(displayImage);
 
 	return (
-		<section className="page page--product-detail">
+		<section className="page page--product-detail storefront-product-detail">
 			<div className="container product-detail-container">
-				<Link to="/products" className="back-link">← Back to Products</Link>
+				<div className="storefront-product-detail__topbar">
+					<Link to="/products" className="storefront-product-detail__back-btn">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+							<path d="m15 18-6-6 6-6" />
+						</svg>
+						<span>Back</span>
+					</Link>
+				</div>
 
 				<div className="product-detail-grid">
 					<div className="product-image-section">
-						<div className="product-gallery-wrapper">
-							<div className="product-image-frame">
-								<img
-									src={imageUrl}
-									alt={product.name}
-									className="product-image"
-									onError={(event) => {
-										event.currentTarget.src = '/images/carousel/image3.jpg';
-									}}
-								/>
-
-								{productImages.length > 1 && (
-									<>
-										<button
-											type="button"
-											className="gallery-nav-btn gallery-nav-btn--prev"
-											onClick={goToPreviousImage}
-											aria-label="Previous image"
-										>
-											‹
-										</button>
-										<button
-											type="button"
-											className="gallery-nav-btn gallery-nav-btn--next"
-											onClick={goToNextImage}
-											aria-label="Next image"
-										>
-											›
-										</button>
-									</>
-								)}
-							</div>
-
-							{productImages.length > 1 && (
-								<div className="product-thumbnails">
+						<div className="storefront-product-detail__gallery">
+							{productImages.length > 1 ? (
+								<div className="product-thumbnails product-thumbnails--vertical">
 									{productImages.map((imagePath, index) => (
 										<button
 											type="button"
 											key={`${imagePath}-${index}`}
-											className={`product-thumbnail-btn ${displayImage === imagePath ? 'active' : ''}`}
+											className={`product-thumbnail-btn ${activeImage === imagePath ? 'active' : ''}`}
 											onClick={() => setActiveImage(imagePath)}
+											aria-label={`View image ${index + 1}`}
 										>
 											<img
 												src={getProductImageUrl(imagePath)}
@@ -249,13 +224,54 @@ export default function ProductDetail() {
 										</button>
 									))}
 								</div>
-							)}
+							) : null}
+
+							<div className="product-image-frame">
+								{hasMultipleImages ? (
+									<>
+										<button
+											type="button"
+											className="product-image-frame__arrow product-image-frame__arrow--prev"
+											onClick={() => goToImage('prev')}
+											aria-label="Previous image"
+										>
+											<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+												<path d="m15 18-6-6 6-6" />
+											</svg>
+										</button>
+										<button
+											type="button"
+											className="product-image-frame__arrow product-image-frame__arrow--next"
+											onClick={() => goToImage('next')}
+											aria-label="Next image"
+										>
+											<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+												<path d="m9 18 6-6-6-6" />
+											</svg>
+										</button>
+									</>
+								) : null}
+								<img
+									src={imageUrl}
+									alt={product.name}
+									className="product-image"
+									loading="eager"
+									onError={(event) => {
+										event.currentTarget.src = '/images/carousel/image3.jpg';
+									}}
+								/>
+							</div>
 						</div>
 					</div>
 
 					<div className="product-info-section">
-						<p className="page-kicker">School Shoes</p>
 						<h1>{product.name}</h1>
+
+						<div className="storefront-product-detail__rating">
+							<span>4.8</span>
+							<span>★★★★★</span>
+							<span>(24 reviews)</span>
+						</div>
 
 						<p className="product-description">
 							{product.description || 'Quality school shoes designed for comfort and durability.'}
@@ -297,14 +313,19 @@ export default function ProductDetail() {
 							</div>
 						</div>
 
-						<button
-							type="button"
-							className="btn btn--primary"
-							onClick={handleAddToCart}
-							disabled={product.stock === 0}
-						>
-							Add to Cart
-						</button>
+						<div className="storefront-product-detail__actions">
+							<button type="button" className="btn btn--primary storefront-product-detail__action-btn" onClick={handleAddToCart} disabled={product.stock === 0}>Add to Cart</button>
+							<button type="button" className="storefront-product-detail__buy-btn" onClick={handleBuyNow} disabled={product.stock === 0}>Buy Now</button>
+						</div>
+
+						<div className="storefront-product-detail__trust-row">
+							{trustItems.map((item) => (
+								<div key={item.label} className="storefront-product-detail__trust-item">
+									<strong>{item.label}</strong>
+									<span>{item.text}</span>
+								</div>
+							))}
+						</div>
 
 						<div className="product-summary-grid">
 							<div className="summary-card">

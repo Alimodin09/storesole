@@ -16,6 +16,12 @@ class ProductController extends Controller
         'White School Shoes',
     ];
 
+    private const ALLOWED_AUDIENCES = [
+        'men',
+        'women',
+        'kids',
+    ];
+
     public function index()
     {
         $products = Product::with('productImages:id,product_id,image_path')
@@ -35,6 +41,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string'],
+            'audience' => ['required', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'size' => ['nullable', 'string', 'max:255'],
             'sizes' => ['nullable', 'array', 'min:1'],
@@ -47,6 +54,7 @@ class ProductController extends Controller
         ]);
 
         $category = $this->normalizeCategory($validated['category']);
+        $audience = $this->normalizeAudience($validated['audience']);
         $sizeValue = $this->resolveSizeValue($validated);
 
         $imagePath = $request->hasFile('image')
@@ -73,6 +81,7 @@ class ProductController extends Controller
         $product = Product::create([
             'name' => $validated['name'],
             'category' => $category,
+            'audience' => $audience,
             'price' => $validated['price'],
             'size' => $sizeValue,
             'stock' => $validated['stock'],
@@ -100,6 +109,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string'],
+            'audience' => ['required', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'size' => ['nullable', 'string', 'max:255'],
             'sizes' => ['nullable', 'array', 'min:1'],
@@ -114,6 +124,7 @@ class ProductController extends Controller
         ]);
 
         $category = $this->normalizeCategory($validated['category']);
+        $audience = $this->normalizeAudience($validated['audience']);
         $sizeValue = $this->resolveSizeValue($validated);
 
         if ($request->hasFile('image')) {
@@ -162,6 +173,7 @@ class ProductController extends Controller
 
         $product->name = $validated['name'];
         $product->category = $category;
+        $product->audience = $audience;
         $product->price = $validated['price'];
         $product->size = $sizeValue;
         $product->stock = $validated['stock'];
@@ -199,16 +211,6 @@ class ProductController extends Controller
     {
         $normalized = trim(strtolower($value));
 
-        $legacyMap = [
-            'men' => 'Formal School Shoes',
-            'women' => 'White School Shoes',
-            'kids' => 'PE / Rubber Shoes',
-        ];
-
-        if (array_key_exists($normalized, $legacyMap)) {
-            return $legacyMap[$normalized];
-        }
-
         foreach (self::ALLOWED_CATEGORIES as $allowedCategory) {
             if (strtolower($allowedCategory) === $normalized) {
                 return $allowedCategory;
@@ -216,6 +218,17 @@ class ProductController extends Controller
         }
 
         abort(422, sprintf('Category must be one of: %s.', implode(', ', self::ALLOWED_CATEGORIES)));
+    }
+
+    private function normalizeAudience(string $value): string
+    {
+        $normalized = trim(strtolower($value));
+
+        if (in_array($normalized, self::ALLOWED_AUDIENCES, true)) {
+            return $normalized;
+        }
+
+        abort(422, sprintf('Audience must be one of: %s.', implode(', ', self::ALLOWED_AUDIENCES)));
     }
 
     private function resolveSizeValue(array $validated): string

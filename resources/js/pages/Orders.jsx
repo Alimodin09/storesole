@@ -1,14 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api from '../utils/api.js';
 import { formatPeso } from '../utils/format.js';
 
+const statusTabs = ['All', 'Pending', 'Processing', 'Completed'];
+
+function getStatusClass(status) {
+    return String(status || '').toLowerCase().replace(/\s+/g, '-');
+}
+
 export default function Orders() {
     const location = useLocation();
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [activeTab, setActiveTab] = useState('All');
 
     useEffect(() => {
         let active = true;
@@ -40,51 +47,89 @@ export default function Orders() {
         };
     }, []);
 
+    const filteredOrders = useMemo(() => {
+        if (activeTab === 'All') {
+            return orders;
+        }
+
+        return orders.filter((order) => String(order.status).toLowerCase() === activeTab.toLowerCase());
+    }, [orders, activeTab]);
+
     return (
         <section className="page page--orders">
             <div className="container orders-shell">
                 <div className="orders-header">
                     <h1>My Orders</h1>
-                    <p>View your order history and track each order status.</p>
+                    <p>Track your orders and view history</p>
                 </div>
 
                 {location.state?.message && <div className="alert alert-success">{location.state.message}</div>}
                 {errorMessage && <div className="alert alert-error">{errorMessage}</div>}
 
-                <div className="orders-status-guide">
-                    <span className="status pending">Pending</span>
-                    <span className="status processing">Processing</span>
-                    <span className="status ready-for-pickup">Ready for Pickup</span>
-                    <span className="status delivered">Delivered</span>
-                    <span className="status completed">Completed</span>
+                <div className="orders-filters" role="tablist" aria-label="Order status filters">
+                    {statusTabs.map((tab) => (
+                        <button
+                            key={tab}
+                            type="button"
+                            role="tab"
+                            aria-selected={activeTab === tab}
+                            className={`orders-filter-tab ${activeTab === tab ? 'is-active' : ''}`}
+                            onClick={() => setActiveTab(tab)}
+                        >
+                            {tab}
+                        </button>
+                    ))}
                 </div>
 
                 {loading ? (
                     <div className="no-orders">
                         <p>Loading your orders...</p>
                     </div>
-                ) : orders.length === 0 ? (
+                ) : filteredOrders.length === 0 ? (
                     <div className="no-orders">
-                        <p>You haven't placed any orders yet.</p>
+                        <p>No orders found for this filter.</p>
                     </div>
                 ) : (
                     <div className="orders-list">
-                        {orders.map((order) => (
-                            <div key={order.id} className="order-card">
-                                <div className="order-header">
-                                    <div>
+                        {filteredOrders.map((order) => (
+                            <article
+                                key={order.id}
+                                className="order-card"
+                                onClick={() => navigate(`/orders/${order.id}`)}
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Enter' || event.key === ' ') {
+                                        event.preventDefault();
+                                        navigate(`/orders/${order.id}`);
+                                    }
+                                }}
+                                role="link"
+                                tabIndex={0}
+                            >
+                                <div className="order-card-head">
+                                    <div className="order-meta">
                                         <h3>Order #{order.id}</h3>
                                         <p className="order-date">{new Date(order.created_at).toLocaleDateString()}</p>
                                     </div>
-                                    <span className={`status ${order.status.toLowerCase().replace(/ /g, '-')}`}>
+                                    <span className={`status ${getStatusClass(order.status)}`}>
                                         {order.status}
                                     </span>
                                 </div>
-                                <div className="order-footer">
-                                    <span className="order-total">Total: {formatPeso(order.total)}</span>
-                                    <Link to={`/orders/${order.id}`} className="btn-small">View Details</Link>
+
+                                <div className="order-card-body">
+                                    <p className="order-total-label">Total</p>
+                                    <p className="order-total">{formatPeso(order.total)}</p>
                                 </div>
-                            </div>
+
+                                <div className="order-card-footer">
+                                    <Link
+                                        to={`/orders/${order.id}`}
+                                        className="btn-small orders-view-btn"
+                                        onClick={(event) => event.stopPropagation()}
+                                    >
+                                        View Details
+                                    </Link>
+                                </div>
+                            </article>
                         ))}
                     </div>
                 )}

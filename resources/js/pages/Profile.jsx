@@ -2,6 +2,18 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api.js';
 import { clearAuthUser, updateAuthUserProfile } from '../utils/auth.js';
+import {
+	IconBasicInfo,
+	IconSecurity,
+	IconOrders,
+	IconShopping,
+	IconLogout,
+	IconUpload,
+	IconEyeOpen,
+	IconEyeClosed,
+	IconCheck,
+	IconActive,
+} from '../components/ProfileIcons.jsx';
 
 export default function Profile() {
 	const navigate = useNavigate();
@@ -24,6 +36,9 @@ export default function Profile() {
 		new_password: '',
 		new_password_confirmation: '',
 	});
+	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+	const [showNewPassword, setShowNewPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 	useEffect(() => {
 		let active = true;
@@ -177,131 +192,240 @@ export default function Profile() {
 	if (loading) {
 		return (
 			<section className="page page--profile">
-				<div className="container profile-shell">
-					<div className="profile-card profile-card--single">
-						<h2>Loading profile...</h2>
-					</div>
+				<div className="container profile-dashboard">
+					<div className="profile-panel"><h2>Loading profile...</h2></div>
 				</div>
 			</section>
 		);
 	}
 
 	return (
-		<section className="page page--profile">
-			<div className="container profile-shell">
-				<div className="profile-page-heading">
-					<h1>My Profile</h1>
-					<p>Manage your account information, profile picture, and security settings.</p>
+		<section className="page page--profile profile-dashboard-page">
+			<div className="container profile-dashboard">
+				{/* Page Header */}
+				<div className="profile-dashboard__heading">
+					<h1>My Account</h1>
+					<p>Manage your profile, security settings, and account preferences</p>
 				</div>
 
-				<div className="profile-card profile-card--header">
-					<div className="profile-avatar-wrap">
-						{avatarUrl && !avatarLoadError ? (
-							<img
-								src={avatarUrl}
-								alt={profile.name}
-								className="profile-avatar"
-								onError={(event) => {
-									setAvatarLoadError(true);
-								}}
-							/>
-						) : (
-							<div className="profile-avatar profile-avatar--fallback">{avatarText}</div>
-						)}
-					</div>
-					<div>
-						<h2>{profile.name || 'SoleStore User'}</h2>
-						<p>{profile.email}</p>
-					</div>
-				</div>
-
+				{/* Alert Messages */}
 				{errorMessage && <p className="profile-alert profile-alert--error">{errorMessage}</p>}
 				{profileMessage && <p className="profile-alert profile-alert--success">{profileMessage}</p>}
 				{passwordMessage && <p className="profile-alert profile-alert--success">{passwordMessage}</p>}
 
-				<div className="profile-grid">
-					<form className="profile-card" onSubmit={handleProfileSubmit}>
-						<h2>Basic Account Info</h2>
-						<div className="profile-form-group">
-							<label htmlFor="profileImage">Profile Picture</label>
-							<input
-								type="file"
-								id="profileImage"
-								accept="image/*"
-								onChange={handleProfileImageChange}
-							/>
+				{/* Main 2-Column Layout */}
+				<div className="profile-dashboard__layout">
+					{/* LEFT SIDEBAR - Profile Card */}
+					<aside className="profile-panel profile-panel--summary">
+						<div className="profile-avatar-wrap">
+							{avatarUrl && !avatarLoadError ? (
+								<img
+									src={avatarUrl}
+									alt={profile.name}
+									className="profile-avatar"
+									onError={() => {
+										setAvatarLoadError(true);
+									}}
+								/>
+							) : (
+								<div className="profile-avatar profile-avatar--fallback">{avatarText}</div>
+							)}
 						</div>
-						<div className="profile-form-group">
-							<label htmlFor="name">Full Name</label>
-							<input
-								type="text"
-								id="name"
-								value={profile.name}
-								onChange={(event) => setProfile((prev) => ({ ...prev, name: event.target.value }))}
-								required
-							/>
-						</div>
-						<div className="profile-form-group">
-							<label htmlFor="email">Email</label>
-							<input
-								type="email"
-								id="email"
-								value={profile.email}
-								onChange={(event) => setProfile((prev) => ({ ...prev, email: event.target.value }))}
-								required
-							/>
-						</div>
-						<button type="submit" className="btn btn--primary profile-btn" disabled={savingProfile}>
-							{savingProfile ? 'Saving...' : 'Save Changes'}
-						</button>
-					</form>
 
-					<form className="profile-card" onSubmit={handlePasswordSubmit}>
-						<h2>Change Password</h2>
-						<div className="profile-form-group">
-							<label htmlFor="currentPassword">Current Password</label>
-							<input
-								type="password"
-								id="currentPassword"
-								value={passwordForm.current_password}
-								onChange={(event) => setPasswordForm((prev) => ({ ...prev, current_password: event.target.value }))}
-								required
-							/>
+						<div className="profile-info">
+							<h2>{profile.name || 'SoleStore User'}</h2>
+							<p>{profile.email}</p>
 						</div>
-						<div className="profile-form-group">
-							<label htmlFor="newPassword">New Password</label>
-							<input
-								type="password"
-								id="newPassword"
-								value={passwordForm.new_password}
-								onChange={(event) => setPasswordForm((prev) => ({ ...prev, new_password: event.target.value }))}
-								required
-								minLength={6}
-							/>
-						</div>
-						<div className="profile-form-group">
-							<label htmlFor="confirmPassword">Confirm New Password</label>
-							<input
-								type="password"
-								id="confirmPassword"
-								value={passwordForm.new_password_confirmation}
-								onChange={(event) => setPasswordForm((prev) => ({ ...prev, new_password_confirmation: event.target.value }))}
-								required
-								minLength={6}
-							/>
-						</div>
-						<button type="submit" className="btn btn--primary profile-btn" disabled={savingPassword}>
-							{savingPassword ? 'Updating...' : 'Update Password'}
-						</button>
-					</form>
 
-					<div className="profile-card profile-card--actions">
-						<h2>Quick Actions</h2>
+						{/* Status Badges */}
+						<div className="profile-summary-list">
+							<div>
+								<span>Member Status</span>
+								<strong className="badge-status">
+									<IconActive /> Active
+								</strong>
+							</div>
+							<div>
+								<span>Account Type</span>
+								<strong>Customer</strong>
+							</div>
+						</div>
+
+						{/* Action Buttons */}
 						<div className="profile-actions">
-							<Link to="/orders" className="btn btn--primary profile-action-link">My Orders</Link>
-							<Link to="/products" className="btn btn--ghost profile-action-link">Continue Shopping</Link>
-							<button type="button" className="btn btn--ghost profile-action-link" onClick={handleLogout}>Logout</button>
+							<Link to="/orders" className="btn btn--primary profile-action-link">
+								<IconOrders /> My Orders
+							</Link>
+							<Link to="/products" className="btn btn--ghost profile-action-link">
+								<IconShopping /> Continue Shopping
+							</Link>
+							<button 
+								type="button" 
+								className="btn btn--danger profile-action-link" 
+								onClick={handleLogout}
+							>
+								<IconLogout /> Logout
+							</button>
 						</div>
+					</aside>
+
+					{/* RIGHT SIDE - Content Forms */}
+					<div className="profile-dashboard__content">
+						{/* BASIC ACCOUNT INFO FORM */}
+						<form className="profile-form-section" onSubmit={handleProfileSubmit}>
+							<h2><IconBasicInfo /> Basic Account Info</h2>
+
+							{/* Profile Picture Upload */}
+							<div className="profile-form-group">
+								<label>Profile Picture</label>
+								<div className="profile-file-input-wrapper">
+									<input 
+										type="file" 
+										id="profileImage" 
+										accept="image/*" 
+										onChange={handleProfileImageChange}
+									/>
+									<label htmlFor="profileImage" className="file-input-label">
+										<IconUpload /> {profileImageFile ? 'Change Photo' : 'Upload Photo'}
+									</label>
+									{profileImageFile && (
+										<div className="file-name-display">
+											<IconCheck /> {profileImageFile.name}
+										</div>
+									)}
+								</div>
+							</div>
+
+							{/* Full Name */}
+							<div className="profile-form-grid">
+								<div className="profile-form-group">
+									<label htmlFor="name">Full Name</label>
+									<input
+										type="text"
+										id="name"
+										value={profile.name}
+										onChange={(event) => setProfile((prev) => ({ ...prev, name: event.target.value }))}
+										placeholder="Enter your full name"
+										required
+									/>
+								</div>
+
+								{/* Email */}
+								<div className="profile-form-group">
+									<label htmlFor="email">Email Address</label>
+									<input
+										type="email"
+										id="email"
+										value={profile.email}
+										onChange={(event) => setProfile((prev) => ({ ...prev, email: event.target.value }))}
+										placeholder="your.email@example.com"
+										required
+									/>
+								</div>
+							</div>
+
+							{/* Save Button */}
+							<div className="profile-form-actions">
+								<button 
+									type="submit" 
+									className="btn btn--primary profile-btn" 
+									disabled={savingProfile}
+								>
+									{savingProfile ? 'Saving...' : 'Save Changes'}
+								</button>
+							</div>
+						</form>
+
+						{/* SECURITY SETTINGS FORM */}
+						<form className="profile-form-section" onSubmit={handlePasswordSubmit}>
+							<h2><IconSecurity /> Security Settings</h2>
+
+							{/* Current Password */}
+							<div className="profile-form-grid">
+								<div className="profile-form-group">
+									<label htmlFor="currentPassword">Current Password</label>
+									<div className="password-field-wrapper">
+										<input
+											type={showCurrentPassword ? 'text' : 'password'}
+											id="currentPassword"
+											value={passwordForm.current_password}
+											onChange={(event) => setPasswordForm((prev) => ({ ...prev, current_password: event.target.value }))}
+											placeholder="Enter current password"
+											required
+										/>
+										<button
+											type="button"
+											className="password-toggle"
+											onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+											title={showCurrentPassword ? 'Hide password' : 'Show password'}
+										>
+											{showCurrentPassword ? <IconEyeOpen /> : <IconEyeClosed />}
+										</button>
+									</div>
+								</div>
+
+								{/* New Password */}
+								<div className="profile-form-group">
+									<label htmlFor="newPassword">New Password</label>
+									<div className="password-field-wrapper">
+										<input
+											type={showNewPassword ? 'text' : 'password'}
+											id="newPassword"
+											value={passwordForm.new_password}
+											onChange={(event) => setPasswordForm((prev) => ({ ...prev, new_password: event.target.value }))}
+											placeholder="Enter new password (min 6 chars)"
+											required
+											minLength={6}
+										/>
+										<button
+											type="button"
+											className="password-toggle"
+											onClick={() => setShowNewPassword(!showNewPassword)}
+											title={showNewPassword ? 'Hide password' : 'Show password'}
+										>
+											{showNewPassword ? <IconEyeOpen /> : <IconEyeClosed />}
+										</button>
+									</div>
+								</div>
+							</div>
+
+							{/* Confirm Password (Full Width) */}
+							<div className="profile-form-grid full-width">
+								<div className="profile-form-group">
+									<label htmlFor="confirmPassword">Confirm New Password</label>
+									<div className="password-field-wrapper">
+										<input
+											type={showConfirmPassword ? 'text' : 'password'}
+											id="confirmPassword"
+											value={passwordForm.new_password_confirmation}
+											onChange={(event) => setPasswordForm((prev) => ({ ...prev, new_password_confirmation: event.target.value }))}
+											placeholder="Re-enter new password"
+											required
+											minLength={6}
+										/>
+										<button
+											type="button"
+											className="password-toggle"
+											onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+											title={showConfirmPassword ? 'Hide password' : 'Show password'}
+										>
+											{showConfirmPassword ? <IconEyeOpen /> : <IconEyeClosed />}
+										</button>
+									</div>
+								</div>
+							</div>
+
+							{/* Update Password Button */}
+							<div className="profile-form-actions">
+								<button 
+									type="submit" 
+									className="btn btn--primary profile-btn" 
+									disabled={savingPassword}
+								>
+									{savingPassword ? 'Updating...' : 'Update Password'}
+								</button>
+							</div>
+						</form>
 					</div>
 				</div>
 			</div>

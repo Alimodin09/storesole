@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiPlus } from 'react-icons/fi';
 import api from '../../utils/api.js';
 
 function formatPeso(value) {
@@ -118,12 +119,16 @@ export default function Dashboard() {
 					<p>Monitor sales, inventory, and customer activity</p>
 				</div>
 				<div className="dashboard-actions">
-					<button className="btn-small" onClick={handleExportReport}>Export Report</button>
-					<button className="btn-small btn-small--primary" onClick={handleAddProduct}>Add Product</button>
+					<button className="btn-small" onClick={handleExportReport} title="Export sales report to CSV">
+						Export Report
+					</button>
+					<button className="btn-small btn-small--primary" onClick={handleAddProduct} title="Create a new product">
+					<FiPlus /> Add Product
+					</button>
 				</div>
 			</div>
 
-			{errorMessage && <p className="auth-error">{errorMessage}</p>}
+			{errorMessage && <div className="alert alert-error">{errorMessage}</div>}
 
 			<div className="stats-grid">
 				{metrics.map((stat) => (
@@ -140,7 +145,7 @@ export default function Dashboard() {
 					<div className="loading">Loading recent orders...</div>
 				) : recentOrders.length === 0 ? (
 					<div className="empty-state">
-						<p>No orders yet.</p>
+						<p>No orders yet. When customers place orders, they'll appear here.</p>
 					</div>
 				) : (
 					<div className="orders-table">
@@ -158,9 +163,9 @@ export default function Dashboard() {
 							<tbody>
 								{recentOrders.map((order) => (
 									<tr key={order.id}>
-										<td>ORD-{String(order.id).padStart(3, '0')}</td>
+										<td className="order-id"><strong>ORD-{String(order.id).padStart(3, '0')}</strong></td>
 										<td>{order.user?.name || 'Guest'}</td>
-										<td>{formatPeso(order.total)}</td>
+										<td><strong>{formatPeso(order.total)}</strong></td>
 										<td>
 											<span className={`badge ${getBadgeClass(order.status)}`}>
 												{order.status}
@@ -168,8 +173,12 @@ export default function Dashboard() {
 										</td>
 										<td>{new Date(order.created_at).toLocaleDateString()}</td>
 										<td>
-											<button className="btn-small" onClick={() => handleManageOrder(order.id)}>
-												Manage
+											<button 
+												className="btn-action" 
+												onClick={() => handleManageOrder(order.id)}
+												title={`View details for order ${order.id}`}
+											>
+												View
 											</button>
 										</td>
 									</tr>

@@ -1,4 +1,14 @@
 export const AUTH_STORAGE_KEY = 'authUser';
+const AUTH_CHANGED_EVENT = 'sole:auth-changed';
+const LEGACY_CART_STORAGE_KEY = 'solestoreCart';
+
+function emitAuthChanged() {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT));
+}
 
 export function getAuthUser() {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY);
@@ -20,16 +30,22 @@ export function setAuthUser(payload, remember = true) {
     if (remember) {
         localStorage.setItem(AUTH_STORAGE_KEY, serialized);
         sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+        emitAuthChanged();
         return;
     }
 
     sessionStorage.setItem(AUTH_STORAGE_KEY, serialized);
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+    emitAuthChanged();
 }
 
 export function clearAuthUser() {
     localStorage.removeItem(AUTH_STORAGE_KEY);
     sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+    emitAuthChanged();
 }
 
 export function getAuthToken() {
@@ -64,4 +80,8 @@ export function updateAuthUserProfile(userPatch) {
         },
         !!localStorage.getItem(AUTH_STORAGE_KEY),
     );
+}
+
+export function getAuthChangedEventName() {
+    return AUTH_CHANGED_EVENT;
 }

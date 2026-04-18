@@ -3,12 +3,16 @@
 @use './global';
 
 @use './components/navbar';
+@use './components/navbar-products-polish';
 @use './components/footer';
 @use './components/product-card';
 
 @use './pages/home';
 @use './pages/auth';
 @use './pages/products';
+@use './pages/products-polish';
 @use './pages/cart';
+@use './pages/checkout';
 @use './pages/dashboard';
 @use './pages/profile';
+@use './pages/orders';

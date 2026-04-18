@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { FiBox, FiClock, FiCheckCircle, FiTruck } from 'react-icons/fi';
 import api from '../../utils/api.js';
 import { formatPeso, getProductImageUrl } from '../../utils/format.js';
 
@@ -8,6 +9,7 @@ export default function Orders() {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [selectedOrderId, setSelectedOrderId] = useState(() => Number(searchParams.get('orderId')) || null);
 
     const statusOptions = ['Pending', 'Processing', 'Ready for Pickup', 'Delivered', 'Completed'];
@@ -50,7 +52,8 @@ export default function Orders() {
 
     const handleSelectOrder = (orderId) => {
         setSelectedOrderId(orderId);
-        setSearchParams({ orderId: String(orderId) }, { replace: true });
+        // Navigate to order detail page
+        navigate(`/admin/orders/${orderId}`);
     };
 
     const selectedOrder = orders.find((order) => order.id === selectedOrderId) || null;
@@ -71,34 +74,40 @@ export default function Orders() {
             <div className="admin-page-header">
                 <div>
                     <h1>Orders</h1>
-                    <p>Manage customer orders and update status</p>
+                    <p>Manage customer orders and track their status</p>
                 </div>
             </div>
 
-            {errorMessage && <p className="auth-error">{errorMessage}</p>}
+            {errorMessage && <div className="alert alert-error">{errorMessage}</div>}
 
+            {/* Summary Cards */}
             <div className="orders-info-cards">
                 <div className="info-card">
-                    <p className="info-label">Total Orders</p>
+                    <p className="info-label"><FiBox className="card-icon" /> Total Orders</p>
                     <p className="info-value">{orders.length}</p>
                 </div>
                 <div className="info-card">
-                    <p className="info-label">Pending Orders</p>
+                    <p className="info-label"><FiClock className="card-icon" /> Pending</p>
                     <p className="info-value">{orders.filter(o => o.status === 'Pending').length}</p>
                 </div>
                 <div className="info-card">
-                    <p className="info-label">Ready for Pickup</p>
+                    <p className="info-label"><FiTruck className="card-icon" /> Ready for Pickup</p>
                     <p className="info-value">{orders.filter(o => o.status === 'Ready for Pickup').length}</p>
                 </div>
                 <div className="info-card">
-                    <p className="info-label">Completed</p>
+                    <p className="info-label"><FiCheckCircle className="card-icon" /> Completed</p>
                     <p className="info-value">{orders.filter(o => o.status === 'Completed').length}</p>
                 </div>
             </div>
 
+            {/* Orders Table */}
             <div className="orders-table-wrapper">
                 {loading ? (
                     <div className="loading">Loading orders...</div>
+                ) : orders.length === 0 ? (
+                    <div className="empty-state">
+                        <p>No orders yet. Customer orders will appear here.</p>
+                    </div>
                 ) : (
                 <table className="orders-table">
                     <thead>
@@ -110,7 +119,7 @@ export default function Orders() {
                             <th>Total</th>
                             <th>Status</th>
                             <th>Date</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,34 +134,34 @@ export default function Orders() {
                                 </td>
                                 <td className="items-count">{order.order_items?.length || 0} item(s)</td>
                                 <td className="payment-method">{order.payment_method === 'cop' ? 'Cash on Pickup' : 'Cash on Delivery'}</td>
-                                <td className="amount">{formatPeso(order.total)}</td>
+                                <td className="amount"><strong>{formatPeso(order.total)}</strong></td>
                                 <td>
                                     <span className={`status-badge ${getStatusColor(order.status)}`}>
                                         {order.status}
                                     </span>
                                 </td>
                                 <td className="order-date">{new Date(order.created_at).toLocaleDateString()}</td>
-                                <td className="action-cell">
-                                    <div className="order-actions-inline">
-                                        <button
-                                            className="btn-action"
-                                            type="button"
-                                            onClick={() => handleSelectOrder(order.id)}
-                                        >
-                                            View
-                                        </button>
-                                        <select
-                                            className="status-select"
-                                            value={order.status}
-                                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                                        >
-                                            {statusOptions.map(status => (
-                                                <option key={status} value={status}>
-                                                    {status}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                <td className="order-actions-inline">
+                                    <button
+                                        className="btn-action"
+                                        type="button"
+                                        onClick={() => handleSelectOrder(order.id)}
+                                        title={`View details for order ${order.id}`}
+                                    >
+                                        View
+                                    </button>
+                                    <select
+                                        className="status-select"
+                                        value={order.status}
+                                        onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                                        title="Update order status"
+                                    >
+                                        {statusOptions.map(status => (
+                                            <option key={status} value={status}>
+                                                {status}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </td>
                             </tr>
                         ))}
@@ -169,18 +178,36 @@ export default function Orders() {
                     </div>
 
                     <div className="order-detail-grid">
-                        <p><strong>Customer:</strong> {selectedOrder.user?.name || 'Guest'}</p>
-                        <p><strong>Email:</strong> {selectedOrder.user?.email || '-'}</p>
-                        <p><strong>Status:</strong> {selectedOrder.status}</p>
-                        <p><strong>Date:</strong> {new Date(selectedOrder.created_at).toLocaleString()}</p>
-                        <p><strong>Payment:</strong> {selectedOrder.payment_method === 'cop' ? 'Cash on Pickup' : 'Cash on Delivery'}</p>
-                        <p><strong>Total:</strong> {formatPeso(selectedOrder.total)}</p>
+                        <div>
+                            <strong>Customer Name</strong>
+                            <p>{selectedOrder.user?.name || 'Guest'}</p>
+                        </div>
+                        <div>
+                            <strong>Email</strong>
+                            <p>{selectedOrder.user?.email || '-'}</p>
+                        </div>
+                        <div>
+                            <strong>Status</strong>
+                            <p><span className={`status-badge ${getStatusColor(selectedOrder.status)}`}>{selectedOrder.status}</span></p>
+                        </div>
+                        <div>
+                            <strong>Order Date</strong>
+                            <p>{new Date(selectedOrder.created_at).toLocaleString()}</p>
+                        </div>
+                        <div>
+                            <strong>Payment Method</strong>
+                            <p>{selectedOrder.payment_method === 'cop' ? 'Cash on Pickup' : 'Cash on Delivery'}</p>
+                        </div>
+                        <div>
+                            <strong>Total Amount</strong>
+                            <p><strong>{formatPeso(selectedOrder.total)}</strong></p>
+                        </div>
                     </div>
 
                     <div className="order-detail-items">
-                        <h3>Items</h3>
+                        <h3>Order Items</h3>
                         {!selectedOrder.order_items?.length ? (
-                            <p className="section-hint">No line items found.</p>
+                            <p className="section-hint">No items found in this order.</p>
                         ) : (
                             <div className="order-detail-items-table-wrap">
                                 <table className="order-detail-items-table">
@@ -216,7 +243,7 @@ export default function Orders() {
                                                     <td>{item.size || '-'}</td>
                                                     <td>{item.quantity}</td>
                                                     <td>{formatPeso(item.unit_price)}</td>
-                                                    <td>{formatPeso(subtotal)}</td>
+                                                    <td><strong>{formatPeso(subtotal)}</strong></td>
                                                 </tr>
                                             );
                                         })}

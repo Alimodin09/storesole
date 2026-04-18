@@ -1,15 +1,30 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getCartItems, removeCartItem, setCartItems, updateCartItem } from '../utils/cart.js';
+import { getCartChangedEventName, getCartItems, removeCartItem, setCartItems, updateCartItem } from '../utils/cart.js';
 import { formatPeso, getProductImageUrl } from '../utils/format.js';
-import { isAuthenticated } from '../utils/auth.js';
+import { getAuthChangedEventName, isAuthenticated } from '../utils/auth.js';
 
 export default function Cart() {
     const navigate = useNavigate();
     const [items, setItems] = useState([]);
 
     useEffect(() => {
-        setItems(getCartItems());
+        const syncItems = () => {
+            setItems(getCartItems());
+        };
+
+        const authEvent = getAuthChangedEventName();
+        const cartEvent = getCartChangedEventName();
+
+        syncItems();
+
+        window.addEventListener(authEvent, syncItems);
+        window.addEventListener(cartEvent, syncItems);
+
+        return () => {
+            window.removeEventListener(authEvent, syncItems);
+            window.removeEventListener(cartEvent, syncItems);
+        };
     }, []);
 
     const refreshCart = (nextItems) => {

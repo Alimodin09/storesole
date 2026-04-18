@@ -58,6 +58,8 @@ export default function OrderDetails() {
         }, 0);
     }, [order]);
 
+    const normalizedStatusClass = String(order?.status || 'default').toLowerCase().replace(/\s+/g, '-');
+
     if (loading) {
         return (
             <section className="page page--orders">
@@ -86,69 +88,107 @@ export default function OrderDetails() {
     return (
         <section className="page page--orders">
             <div className="container orders-shell">
-                <div className="orders-header">
+                <div className="orders-details-header">
+                    <Link to="/orders" className="orders-back-btn" aria-label="Back to orders">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M15 18l-6-6 6-6" />
+                        </svg>
+                    </Link>
                     <h1>Order Details</h1>
-                    <p>Review your selected order information.</p>
                 </div>
 
-                <div className="order-card order-details-card">
-                    <div className="order-details-grid">
-                        <p><strong>Order ID:</strong> #{order.id}</p>
-                        <p><strong>Date:</strong> {new Date(order.created_at).toLocaleString()}</p>
-                        <p>
-                            <strong>Status:</strong>{' '}
-                            <span className={`status ${String(order.status).toLowerCase().replace(/ /g, '-')}`}>
-                                {order.status}
-                            </span>
-                        </p>
-                        <p><strong>Payment Method:</strong> {paymentLabel(order.payment_method)}</p>
-                    </div>
+                <div className="order-details-layout">
+                    <div className="order-details-main">
+                        <section className="order-section order-info-section">
+                            <div className="order-section-head">
+                                <h2>Order Info</h2>
+                            </div>
 
-                    <div className="order-items-table-wrap">
-                        <table className="order-items-table">
-                            <thead>
-                                <tr>
-                                    <th>Image</th>
-                                    <th>Product</th>
-                                    <th>Size</th>
-                                    <th>Qty</th>
-                                    <th>Price</th>
-                                    <th>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                            <div className="order-info-grid">
+                                <div className="order-info-item">
+                                    <p className="order-info-label">Order ID</p>
+                                    <p className="order-info-value">#{order.id}</p>
+                                </div>
+
+                                <div className="order-info-item">
+                                    <p className="order-info-label">Date</p>
+                                    <p className="order-info-value">{new Date(order.created_at).toLocaleString()}</p>
+                                </div>
+
+                                <div className="order-info-item">
+                                    <p className="order-info-label">Status</p>
+                                    <p className="order-info-value">
+                                        <span className={`status ${normalizedStatusClass}`}>
+                                            {order.status}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="order-section products-section">
+                            <div className="order-section-head">
+                                <h2>Products</h2>
+                            </div>
+
+                            <div className="order-products-list">
                                 {(order.order_items || []).map((item) => {
                                     const imageUrl = getProductImageUrl(item.product?.image || '');
                                     const itemSubtotal = Number(item.unit_price) * Number(item.quantity);
 
                                     return (
-                                        <tr key={item.id}>
-                                            <td>
+                                        <article key={item.id} className="order-product-card">
+                                            <div className="order-product-image-wrap">
                                                 <img
                                                     src={imageUrl}
                                                     alt={item.product?.name || 'Product image'}
-                                                    className="order-item-image"
+                                                    className="order-product-image"
                                                     onError={(event) => {
                                                         event.currentTarget.src = '/images/carousel/image3.jpg';
                                                     }}
                                                 />
-                                            </td>
-                                            <td>{item.product?.name || 'Product unavailable'}</td>
-                                            <td>{item.size || '-'}</td>
-                                            <td>{item.quantity}</td>
-                                            <td>{formatPeso(item.unit_price)}</td>
-                                            <td>{formatPeso(itemSubtotal)}</td>
-                                        </tr>
+                                            </div>
+
+                                            <div className="order-product-content">
+                                                <h3>{item.product?.name || 'Product unavailable'}</h3>
+
+                                                <div className="order-product-meta">
+                                                    <p><span>Selected Size</span><strong>{item.size || '-'}</strong></p>
+                                                    <p><span>Quantity</span><strong>{item.quantity}</strong></p>
+                                                </div>
+
+                                                <div className="order-product-pricing">
+                                                    <p><span>Price</span><strong>{formatPeso(item.unit_price)}</strong></p>
+                                                    <p><span>Subtotal</span><strong>{formatPeso(itemSubtotal)}</strong></p>
+                                                </div>
+                                            </div>
+                                        </article>
                                     );
                                 })}
-                            </tbody>
-                        </table>
+                            </div>
+                        </section>
                     </div>
 
-                    <div className="order-footer">
-                        <span className="order-total">Total: {formatPeso(computedTotal)}</span>
-                        <Link to="/orders" className="btn-small">Back to Orders</Link>
-                    </div>
+                    <aside className="order-section order-summary-section">
+                        <div className="order-section-head">
+                            <h2>Summary</h2>
+                        </div>
+
+                        <div className="order-summary-list">
+                            <div className="order-summary-row">
+                                <span>Total Price</span>
+                                <strong>{formatPeso(computedTotal)}</strong>
+                            </div>
+                            <div className="order-summary-row">
+                                <span>Payment Method</span>
+                                <strong>{paymentLabel(order.payment_method)}</strong>
+                            </div>
+                            <div className="order-summary-row order-summary-row--status">
+                                <span>Status</span>
+                                <span className={`status ${normalizedStatusClass}`}>{order.status}</span>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
             </div>
         </section>

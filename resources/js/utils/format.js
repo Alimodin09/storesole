@@ -5,7 +5,7 @@ export function formatPeso(value) {
 
 export function getProductImageUrl(imagePath) {
     if (!imagePath) {
-        return '/images/carousel/image3.jpg';
+        return '/images/carousel/download.jpg';
     }
 
     if (imagePath.startsWith('http')) {

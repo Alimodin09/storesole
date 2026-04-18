@@ -1,0 +1,17 @@
+@use '../variables' as *;
+
+.navbar {
+	z-index: 80;
+}
+
+.navbar__dropdown-menu {
+	z-index: 120;
+}
+
+.navbar--storefront .navbar__dropdown-menu {
+	z-index: 140;
+}
+
+.navbar--storefront .navbar__actions {
+	gap: 0.5rem;
+}

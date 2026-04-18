@@ -18,6 +18,7 @@ import AdminDashboard from './pages/admin/Dashboard.jsx';
 import AdminProducts from './pages/admin/Products.jsx';
 import AdminProductCreate from './pages/admin/ProductCreate.jsx';
 import AdminOrders from './pages/admin/Orders.jsx';
+import AdminOrderDetails from './pages/admin/OrderDetails.jsx';
 import AdminLogin from './pages/admin/AdminLogin.jsx';
 import RequireRole from './components/RequireRole.jsx';
 
@@ -88,6 +89,7 @@ export default function App() {
                     <Route path="products" element={<AdminProducts />} />
                     <Route path="products/create" element={<AdminProductCreate />} />
                     <Route path="orders" element={<AdminOrders />} />
+                    <Route path="orders/:id" element={<AdminOrderDetails />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
