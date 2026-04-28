@@ -87,7 +87,7 @@ export default function ProductCreate() {
 			payload.append('name', formData.name);
 			payload.append('category', formData.category);
 			payload.append('audience', formData.audience);
-			payload.append('price', formData.price);
+			payload.append('price', Number(formData.price).toString());
 			payload.append('size', normalizedSizes.join(', '));
 			normalizedSizes.forEach((item) => {
 				payload.append('sizes[]', item);
@@ -103,11 +103,7 @@ export default function ProductCreate() {
 				payload.append('images[]', file);
 			});
 
-			await api.post('/products', payload, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
-			});
+			await api.post('/products', payload);
 
 			setSuccessMessage('Product created successfully!');
 			setLoading(false);
@@ -116,7 +112,19 @@ export default function ProductCreate() {
 				navigate('/admin/products');
 			}, 1500);
 		} catch (error) {
-			setErrorMessage(error?.response?.data?.message || 'Error creating product. Please try again.');
+			const errors = error?.response?.data?.errors || {};
+			const message = error?.response?.data?.message || 'Error creating product. Please try again.';
+			
+			// Build detailed error message
+			let fullError = message;
+			if (Object.keys(errors).length > 0) {
+				const errorDetails = Object.entries(errors)
+					.map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+					.join('\n');
+				fullError = `${message}\n\n${errorDetails}`;
+			}
+			
+			setErrorMessage(fullError);
 			setLoading(false);
 		}
 	};

@@ -208,20 +208,25 @@ export default function Home() {
 					<div className="storefront-home__featured-shell">
 						<FeaturedProductsCarousel showControls />
 					</div>
+				<div className="storefront-home__featured-cta">
+					<Link to="/products" className="btn btn--featured-more">
+						View More
+					</Link>
 				</div>
-			</section>
+			</div>
+		</section>
 
-			<section className="storefront-home__trust">
-				<div className="container storefront-home__trust-grid">
-					{trustItems.map((item) => (
-						<article key={item.title} className="storefront-home__trust-item">
-							<div className="storefront-home__trust-icon" aria-hidden="true">{item.icon}</div>
-							<h3>{item.title}</h3>
-							<p>{item.text}</p>
-						</article>
-					))}
-				</div>
-			</section>
-		</div>
-	);
+		<section className="storefront-home__trust">
+			<div className="container storefront-home__trust-grid">
+				{trustItems.map((item) => (
+					<article key={item.title} className="storefront-home__trust-item">
+						<div className="storefront-home__trust-icon" aria-hidden="true">{item.icon}</div>
+						<h3>{item.title}</h3>
+						<p>{item.text}</p>
+					</article>
+				))}
+			</div>
+		</section>
+	</div>
+);
 }

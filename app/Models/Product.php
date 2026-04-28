@@ -4,15 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
-        'category',
-        'audience',
+        'product_type',
+        'target_group',
         'price',
         'size',
         'stock',
@@ -68,5 +69,21 @@ class Product extends Model
     public function productImages()
     {
         return $this->hasMany(ProductImage::class)->orderBy('id');
+    }
+
+    public function productSizes()
+    {
+        return $this->hasMany(ProductSize::class);
+    }
+
+    // Backward compatibility accessors
+    public function getAudienceAttribute()
+    {
+        return $this->attributes['target_group'] ?? null;
+    }
+
+    public function getCategoryAttribute()
+    {
+        return $this->attributes['product_type'] ?? null;
     }
 }

@@ -181,7 +181,7 @@ export default function Products() {
             payload.append('name', editForm.name.trim());
             payload.append('category', editForm.category);
             payload.append('audience', editForm.audience);
-            payload.append('price', editForm.price);
+            payload.append('price', Number(editForm.price).toString());
             payload.append('size', sizes.join(', '));
             sizes.forEach((item) => {
                 payload.append('sizes[]', item);
@@ -203,17 +203,24 @@ export default function Products() {
 
             payload.append('_method', 'PUT');
 
-            await api.post(`/products/${editingProductId}`, payload, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            await api.post(`/products/${editingProductId}`, payload);
 
             setEditSuccessMessage('Product updated successfully.');
             setEditingProductId(null);
             await fetchProducts();
         } catch (error) {
-            setErrorMessage(error?.response?.data?.message || 'Failed to update product.');
+            const errors = error?.response?.data?.errors || {};
+            const message = error?.response?.data?.message || 'Failed to update product.';
+            
+            let fullError = message;
+            if (Object.keys(errors).length > 0) {
+                const errorDetails = Object.entries(errors)
+                    .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+                    .join('\n');
+                fullError = `${message}\n\n${errorDetails}`;
+            }
+            
+            setErrorMessage(fullError);
         } finally {
             setSubmittingEdit(false);
         }

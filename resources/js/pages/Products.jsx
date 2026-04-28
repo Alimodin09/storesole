@@ -61,7 +61,12 @@ function resolveAudience(searchParams) {
 
 function matchesCategory(product, category) {
 	if (category === 'All') return true;
-	return String(product.category || '').toLowerCase() === category.toLowerCase();
+	
+	// Support both product_type (new) and category (legacy/accessor)
+	const productCategory = (product.product_type || product.category || '').toLowerCase().trim();
+	const normalizedCategory = String(category || '').toLowerCase().trim();
+	
+	return productCategory === normalizedCategory;
 }
 
 function getProductSizes(product) {
@@ -98,7 +103,8 @@ function getFirstProductImage(product) {
 function matchesAudience(product, audience) {
 	if (audience === 'all') return true;
 
-	const value = normalizeAudience(product?.audience || 'kids');
+	// Support both audience and target_group fields
+	const value = normalizeAudience((product?.audience || product?.target_group) || 'kids');
 	return value === audience;
 }
 

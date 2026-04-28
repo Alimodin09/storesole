@@ -48,24 +48,41 @@ class ProductController extends Controller
             'sizes.*' => ['required', 'string', 'max:50'],
             'stock' => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'images' => ['nullable', 'array'],
-            'images.*' => ['required', 'image', 'max:2048'],
+            'images.*' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
         $category = $this->normalizeCategory($validated['category']);
         $audience = $this->normalizeAudience($validated['audience']);
         $sizeValue = $this->resolveSizeValue($validated);
 
-        $imagePath = $request->hasFile('image')
-            ? $request->file('image')->store('products', 'public')
-            : null;
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $mainImage = $request->file('image');
+            
+            if (!$mainImage->isValid()) {
+                return response()->json([
+                    'message' => 'Main image upload failed.',
+                    'error' => $mainImage->getErrorMessage(),
+                ], 422);
+            }
+            
+            $imagePath = $mainImage->store('products', 'public');
+        }
 
         $extraImagePaths = [];
         if ($request->hasFile('images')) {
-            $extraImagePaths = collect($request->file('images'))
-                ->map(fn ($file) => $file->store('products', 'public'))
-                ->all();
+            foreach ($request->file('images') as $extraImage) {
+                if (!$extraImage->isValid()) {
+                    return response()->json([
+                        'message' => 'Extra image upload failed.',
+                        'error' => $extraImage->getErrorMessage(),
+                    ], 422);
+                }
+                
+                $extraImagePaths[] = $extraImage->store('products', 'public');
+            }
         }
 
         $allPaths = collect([$imagePath])
@@ -80,9 +97,9 @@ class ProductController extends Controller
 
         $product = Product::create([
             'name' => $validated['name'],
-            'category' => $category,
-            'audience' => $audience,
-            'price' => $validated['price'],
+            'product_type' => $category,
+            'target_group' => $audience,
+            'price' => (float) $validated['price'],
             'size' => $sizeValue,
             'stock' => $validated['stock'],
             'description' => $validated['description'] ?? '',
@@ -116,9 +133,9 @@ class ProductController extends Controller
             'sizes.*' => ['required', 'string', 'max:50'],
             'stock' => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'images' => ['nullable', 'array'],
-            'images.*' => ['required', 'image', 'max:2048'],
+            'images.*' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'removed_image_ids' => ['nullable', 'array'],
             'removed_image_ids.*' => ['required', 'integer'],
         ]);
@@ -128,13 +145,22 @@ class ProductController extends Controller
         $sizeValue = $this->resolveSizeValue($validated);
 
         if ($request->hasFile('image')) {
+            $mainImage = $request->file('image');
+            
+            if (!$mainImage->isValid()) {
+                return response()->json([
+                    'message' => 'Main image upload failed.',
+                    'error' => $mainImage->getErrorMessage(),
+                ], 422);
+            }
+            
             $previousMainImage = $product->image;
 
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
             }
 
-            $product->image = $request->file('image')->store('products', 'public');
+            $product->image = $mainImage->store('products', 'public');
 
             if (!empty($previousMainImage)) {
                 $product->productImages()->where('image_path', $previousMainImage)->delete();
@@ -147,10 +173,17 @@ class ProductController extends Controller
         }
 
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
+            foreach ($request->file('images') as $extraImage) {
+                if (!$extraImage->isValid()) {
+                    return response()->json([
+                        'message' => 'Extra image upload failed.',
+                        'error' => $extraImage->getErrorMessage(),
+                    ], 422);
+                }
+                
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image_path' => $file->store('products', 'public'),
+                    'image_path' => $extraImage->store('products', 'public'),
                 ]);
             }
         }
@@ -172,9 +205,9 @@ class ProductController extends Controller
         }
 
         $product->name = $validated['name'];
-        $product->category = $category;
-        $product->audience = $audience;
-        $product->price = $validated['price'];
+        $product->product_type = $category;
+        $product->target_group = $audience;
+        $product->price = (float) $validated['price'];
         $product->size = $sizeValue;
         $product->stock = $validated['stock'];
         $product->description = $validated['description'] ?? '';

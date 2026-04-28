@@ -24,7 +24,7 @@ class OrderController extends Controller
     {
         $orders = Order::with([
             'user:id,name,email',
-            'orderItems.product:id,name,image,category,size',
+            'orderItems.product:id,name,image,product_type,size',
         ])
             ->orderByDesc('created_at')
             ->get();
@@ -36,7 +36,7 @@ class OrderController extends Controller
     {
         return response()->json($order->load([
             'user:id,name,email',
-            'orderItems.product:id,name,image,category,size',
+            'orderItems.product:id,name,image,product_type,size',
         ]));
     }
 
@@ -148,7 +148,7 @@ class OrderController extends Controller
             'message' => 'Order status updated successfully.',
             'order' => $order->load([
                 'user:id,name,email',
-                'orderItems.product:id,name,image,category,size',
+                'orderItems.product:id,name,image,product_type,size',
             ]),
         ]);
     }
