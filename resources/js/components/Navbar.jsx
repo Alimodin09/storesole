@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, ShoppingCart, User, X } from 'lucide-react';
+import { Bell, Search, ShoppingCart, User } from 'lucide-react';
 import { getAuthChangedEventName, getAuthUser } from '../utils/auth.js';
 import { getCartChangedEventName, getCartCount } from '../utils/cart.js';
 import api from '../utils/api.js';
@@ -17,6 +17,7 @@ export default function Navbar() {
 	const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 	const [orders, setOrders] = useState([]);
 	const [notificationLoading, setNotificationLoading] = useState(false);
+	const searchInputRef = useRef(null);
 	const searchWrapperRef = useRef(null);
 	const notificationRef = useRef(null);
 	const navigate = useNavigate();
@@ -33,13 +34,22 @@ export default function Navbar() {
 	// Helper to check if menu link is active based on exact query params
 	const isMenuLinkActive = (to) => {
 		if (location.pathname !== '/products') return false;
-		const urlParams = new URLSearchParams(location.search);
-		const toParams = new URLSearchParams(to.split('?')[1] || '');
 		
-		if (to.includes('audience=men')) return urlParams.get('audience') === 'men';
-		if (to.includes('audience=women')) return urlParams.get('audience') === 'women';
-		if (to.includes('audience=kids')) return urlParams.get('audience') === 'kids';
-		if (to.includes('sort=newest')) return urlParams.get('sort') === 'newest';
+		if (to.includes('audience=men')) {
+			return new URLSearchParams(location.search).get('audience') === 'men' && 
+				!new URLSearchParams(location.search).get('sort');
+		}
+		if (to.includes('audience=women')) {
+			return new URLSearchParams(location.search).get('audience') === 'women' && 
+				!new URLSearchParams(location.search).get('sort');
+		}
+		if (to.includes('audience=kids')) {
+			return new URLSearchParams(location.search).get('audience') === 'kids' && 
+				!new URLSearchParams(location.search).get('sort');
+		}
+		if (to.includes('sort=newest')) {
+			return new URLSearchParams(location.search).get('sort') === 'newest';
+		}
 		return false;
 	};
 
@@ -104,8 +114,13 @@ export default function Navbar() {
 
 	useEffect(() => {
 		const handleEscapeKey = (event) => {
-			if (event.key === 'Escape' && isSearchOpen) {
-				setIsSearchOpen(false);
+			if (event.key === 'Escape') {
+				if (isSearchOpen) {
+					setIsSearchOpen(false);
+				}
+				if (isNotificationOpen) {
+					setIsNotificationOpen(false);
+				}
 			}
 		};
 
@@ -131,6 +146,12 @@ export default function Navbar() {
 	}, [isSearchOpen, isNotificationOpen]);
 
 	useEffect(() => {
+		if (isSearchOpen && searchInputRef.current) {
+			searchInputRef.current.focus();
+		}
+	}, [isSearchOpen]);
+
+	useEffect(() => {
 		setAuthUser(getAuthUser());
 		setCartCount(getCartCount());
 		setSearchValue(new URLSearchParams(location.search).get('search') || '');
@@ -154,6 +175,24 @@ export default function Navbar() {
 			window.removeEventListener(authEvent, syncNavbarState);
 			window.removeEventListener(cartEvent, syncNavbarState);
 		};
+	}, []);
+
+	// Pre-fetch orders on mount if user is logged in
+	useEffect(() => {
+		const fetchOrdersOnMount = async () => {
+			const user = getAuthUser();
+			if (user?.user?.role === 'customer') {
+				try {
+					const { data } = await api.get('/user/orders');
+					setOrders(data || []);
+				} catch (error) {
+					console.error('Failed to fetch orders on mount:', error);
+					setOrders([]);
+				}
+			}
+		};
+
+		fetchOrdersOnMount();
 	}, []);
 
 	// Helper to map order status to CSS class
@@ -217,28 +256,26 @@ export default function Navbar() {
 			<div className="navbar__actions">
 				{/* Search */}
 			<div className={`navbar__search-wrapper ${isSearchOpen ? 'is-open' : ''}`} ref={searchWrapperRef}>
-			{!isSearchOpen && (
-				<button
-					type="button"
-					className="navbar__search-btn"
-					onClick={() => setIsSearchOpen(!isSearchOpen)}
-					aria-label="Search products"
-					aria-expanded={isSearchOpen}
-				>
-					<Search size={20} strokeWidth={2.2} />
-				</button>
-			)}
-
-				{isSearchOpen && (
+				{!isSearchOpen ? (
+					<button
+						type="button"
+						className="navbar__search-btn"
+						onClick={() => setIsSearchOpen(true)}
+						aria-label="Open search"
+						aria-expanded={isSearchOpen}
+					>
+						<Search size={20} strokeWidth={2.2} />
+					</button>
+				) : (
 					<form className="navbar__search-form" onSubmit={handleSearchSubmit}>
 						<Search size={18} strokeWidth={2.2} className="navbar__search-form-icon" />
 						<input
+							ref={searchInputRef}
 							type="search"
 							className="navbar__search-form-input"
 							placeholder="Search shoes..."
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
-							autoFocus
 							aria-label="Search products"
 						/>
 					</form>

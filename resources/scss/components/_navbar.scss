@@ -168,12 +168,11 @@
 
   @media (max-width: 900px) {
     font-size: 0.9rem;
-    gap: 1.5rem;
   }
 }
 
 // ============================================
-// Actions (Search, Cart, Profile Icons)
+// Actions (Search, Notifications, Cart, Profile Icons)
 // ============================================
 
 .navbar__actions {
@@ -188,7 +187,10 @@
   }
 }
 
+// ============================================
 // Icon Button Base Style
+// ============================================
+
 .navbar__icon-btn {
   display: inline-flex;
   align-items: center;
@@ -200,9 +202,9 @@
   min-height: 42px;
   padding: 0;
   border: none;
-  border-radius: 14px;
-  background: #ffffff;
-  color: #0f2147;
+  border-radius: 50%;
+  background: transparent;
+  color: #1e3a8a;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -217,12 +219,12 @@
   }
 
   &:hover {
-    background: rgba($color-primary, 0.1);
-    transform: translateY(-2px);
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.05);
   }
 
   &:active {
-    transform: translateY(0);
+    transform: scale(1);
   }
 
   &:focus-visible {
@@ -231,31 +233,8 @@
   }
 }
 
-.navbar__search-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-}
-
-.navbar__cart-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-}
-
-.navbar__profile-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-}
-
 // ============================================
-// Inline Search
+// Search
 // ============================================
 
 .navbar__search-wrapper {
@@ -266,46 +245,8 @@
 }
 
 .navbar__search-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 42px;
-  height: 42px;
-  min-width: 42px;
-  min-height: 42px;
-  padding: 0;
-  border: 1px solid #dbe4f0;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #0f2147;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  svg {
-    width: 20px;
-    height: 20px;
-    display: block;
-    stroke: currentColor;
-    fill: none;
-    flex-shrink: 0;
-  }
-
-  &:hover {
-    background: #eef4ff;
-    border-color: #bcd3ff;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:focus-visible {
-    outline: 2px solid $color-primary;
-    outline-offset: 2px;
-  }
+  @extend .navbar__icon-btn;
+  flex-shrink: 0;
 }
 
 .navbar__search-form {
@@ -314,22 +255,20 @@
   gap: 0.5rem;
   padding: 0 0.75rem;
   border: 1px solid #cfe0ff;
-  border-radius: 999px;
+  border-radius: 12px;
   background: #ffffff;
   width: 260px;
-  height: 44px;
+  height: 42px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   animation: slideInSearch 0.2s ease;
   flex-shrink: 0;
 
   @media (max-width: 900px) {
     width: 220px;
-    height: 42px;
   }
 
   @media (max-width: 700px) {
     width: 180px;
-    height: 40px;
     gap: 0.4rem;
     padding: 0 0.6rem;
   }
@@ -340,6 +279,9 @@
   color: #0f2147;
   stroke: currentColor;
   fill: none;
+  width: 18px;
+  height: 18px;
+  display: block;
 
   @media (max-width: 700px) {
     width: 16px;
@@ -385,7 +327,10 @@
   }
 }
 
+// ============================================
 // Cart Badge
+// ============================================
+
 .navbar__badge {
   position: absolute;
   top: -6px;
@@ -406,8 +351,8 @@
   box-shadow: 0 2px 4px rgba($color-primary, 0.2);
 
   &--notification {
-    right: -10px;
     top: -10px;
+    right: -10px;
     min-width: 22px;
     height: 22px;
     font-size: 0.7rem;
@@ -424,44 +369,9 @@
 }
 
 .navbar__notification-btn {
+  @extend .navbar__icon-btn;
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  border: 1px solid #dbe4f0;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #0f2147;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  svg {
-    width: 20px;
-    height: 20px;
-    display: block;
-    stroke: currentColor;
-    fill: none;
-    flex-shrink: 0;
-  }
-
-  &:hover {
-    background: #eef4ff;
-    border-color: #bcd3ff;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:focus-visible {
-    outline: 2px solid $color-primary;
-    outline-offset: 2px;
-  }
+  flex-shrink: 0;
 }
 
 .navbar__notification-dropdown {
@@ -652,6 +562,30 @@
 }
 
 // ============================================
+// Cart Button
+// ============================================
+
+.navbar__cart-btn {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 50%;
+}
+
+// ============================================
+// Profile Button
+// ============================================
+
+.navbar__profile-btn {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 50%;
+}
+
+// ============================================
 // Auth Buttons (Login / Sign Up)
 // ============================================
 
@@ -710,60 +644,10 @@
   border-color: $color-primary;
 
   &:hover {
-    background: $color-primary-dark;
-    border-color: $color-primary-dark;
+    background: #1e3a8a;
+    border-color: #1e3a8a;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba($color-primary, 0.2);
-  }
-}
-
-.navbar__btn-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.55rem 1.1rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 40px;
-
-  &:focus-visible {
-    outline: 2px solid $color-primary;
-    outline-offset: 2px;
-  }
-
-  @media (max-width: 900px) {
-    padding: 0.5rem 0.9rem;
-    font-size: 0.8rem;
-  }
-}
-
-.navbar__btn-login {
-  color: $color-primary;
-  background: transparent;
-  border: 1.5px solid $color-primary;
-
-  &:hover {
-    background: rgba($color-primary, 0.06);
-    color: $color-primary-dark;
-    border-color: $color-primary-dark;
-  }
-}
-
-.navbar__btn-signup {
-  background: $color-primary;
-  color: #fff;
-  border: 1px solid $color-primary;
-
-  &:hover {
-    background: $color-primary-dark;
-    border-color: $color-primary-dark;
-    box-shadow: 0 4px 12px rgba($color-primary, 0.25);
-    transform: translateY(-2px);
   }
 }
 
@@ -885,4 +769,3 @@
     background: #f0f0f0;
   }
 }
-

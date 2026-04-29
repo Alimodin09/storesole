@@ -59,12 +59,24 @@ function resolveAudience(searchParams) {
 	return 'all';
 }
 
+function normalize(value) {
+	return String(value || '').toLowerCase().trim();
+}
+
+function getProductType(product) {
+	return normalize(product.product_type || product.category);
+}
+
+function getTargetGroup(product) {
+	return normalize(product.target_group || product.audience);
+}
+
 function matchesCategory(product, category) {
 	if (category === 'All') return true;
 	
 	// Support both product_type (new) and category (legacy/accessor)
-	const productCategory = (product.product_type || product.category || '').toLowerCase().trim();
-	const normalizedCategory = String(category || '').toLowerCase().trim();
+	const productCategory = getProductType(product);
+	const normalizedCategory = normalize(category);
 	
 	return productCategory === normalizedCategory;
 }
@@ -104,7 +116,7 @@ function matchesAudience(product, audience) {
 	if (audience === 'all') return true;
 
 	// Support both audience and target_group fields
-	const value = normalizeAudience((product?.audience || product?.target_group) || 'kids');
+	const value = normalizeAudience((product?.target_group || product?.audience) || 'kids');
 	return value === audience;
 }
 
@@ -210,17 +222,30 @@ export default function Products() {
 			});
 		}
 
+		// Apply sorting - create a new array to avoid mutating the original
+		const sortedItems = [...items];
+
 		if (sortBy === 'price-low') {
-			items.sort((left, right) => Number(left.price) - Number(right.price));
+			sortedItems.sort((left, right) => Number(left.price) - Number(right.price));
 		} else if (sortBy === 'price-high') {
-			items.sort((left, right) => Number(right.price) - Number(left.price));
+			sortedItems.sort((left, right) => Number(right.price) - Number(left.price));
 		} else if (sortBy === 'popular') {
-			items.sort((left, right) => Number(right.stock) - Number(left.stock));
-		} else {
-			items.sort((left, right) => left.name.localeCompare(right.name));
+			// Sort by sold_count/orders_count if available, fallback to stock or id
+			sortedItems.sort((left, right) => {
+				const leftSold = Number(left.sold_count || left.orders_count || left.stock || 0);
+				const rightSold = Number(right.sold_count || right.orders_count || right.stock || 0);
+				return rightSold - leftSold;
+			});
+		} else if (sortBy === 'name') {
+			// Newest: sort by created_at DESC, fallback to id DESC
+			sortedItems.sort((left, right) => {
+				const leftId = Number(left.id || 0);
+				const rightId = Number(right.id || 0);
+				return rightId - leftId;
+			});
 		}
 
-		return items;
+		return sortedItems;
 	}, [products, audience, query, category, selectedSizes, sortBy]);
 
 	const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
