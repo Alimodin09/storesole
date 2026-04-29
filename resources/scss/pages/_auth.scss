@@ -474,6 +474,10 @@
 .auth-secondary-links {
   text-align: center;
   margin-top: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
 }
 
 .auth-secondary-link {

@@ -94,6 +94,9 @@ export default function Checkout() {
                     quantity: item.quantity,
                     size: item.size,
                 })),
+                contact_name: fields.fullName,
+                contact_phone: fields.mobile,
+                delivery_address: fields.address,
                 payment_method: paymentMethod,
             });
 

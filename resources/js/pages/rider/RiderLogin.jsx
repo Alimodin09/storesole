@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import api from '../utils/api.js';
-import { setAuthUser } from '../utils/auth.js';
-import AuthImageCarousel from '../components/AuthImageCarousel.jsx';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import api from '../../utils/api.js';
+import { setAuthUser } from '../../utils/auth.js';
 
-// Update this path if the logo file location changes
 const AUTH_LOGO_PATH = '/images/carousel/sole-logo.png';
 
-export default function Login() {
+export default function RiderLogin() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -16,9 +14,9 @@ export default function Login() {
     const [isPageMounted, setIsPageMounted] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const stateMessage = location.state?.message || '';
 
     useEffect(() => {
-        // Trigger animation on mount
         setIsPageMounted(true);
     }, []);
 
@@ -28,24 +26,20 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const { data } = await api.post('/auth/login', { email, password });
+            const { data } = await api.post('/auth/rider-login', { email, password });
             setAuthUser({ token: data.token, user: data.user }, true);
-            navigate('/');
+            navigate('/rider/dashboard');
         } catch (error) {
-            if (error?.response?.status === 403) {
-                setErrorMessage('This account is for admin access. Use the Admin Login page instead.');
-            } else {
-                setErrorMessage(error?.response?.data?.message || 'Unable to login. Please try again.');
-            }
+            setErrorMessage(error?.response?.data?.message || 'Unable to login. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="page--auth page--auth-customer">
+        <div className="page--auth page--auth-rider">
             <div className="auth-shell">
-                <div className={`auth-card auth-card--split ${isPageMounted ? 'is-visible' : ''}`}>
+                <div className={`auth-card auth-card--admin ${isPageMounted ? 'is-visible' : ''}`}>
                     <div className="auth-card__form-pane">
                         <div className={`auth-form-container ${isPageMounted ? 'is-visible' : ''}`}>
                             <div className="auth-brand-row">
@@ -56,32 +50,26 @@ export default function Login() {
                             </div>
 
                             <div className="auth-header auth-header--premium auth-header--centered">
-                                <h1 className="auth-heading">Welcome Back</h1>
-                                <p className="auth-subtitle">
-                                    Sign in to continue shopping with comfort-first school shoes.
-                                </p>
+                                <h1 className="auth-heading">Rider Portal</h1>
+                                <p className="auth-subtitle">Sign in to manage your deliveries</p>
                             </div>
 
-                            {location.state?.message && (
-                                <div className="auth-alert auth-alert--success">
-                                    {location.state.message}
-                                </div>
+                            {stateMessage && (
+                                <div className="auth-alert auth-alert--success">{stateMessage}</div>
                             )}
 
                             {errorMessage && (
-                                <div className="auth-alert auth-alert--error">
-                                    {errorMessage}
-                                </div>
+                                <div className="auth-alert auth-alert--error">{errorMessage}</div>
                             )}
 
                             <form onSubmit={handleSubmit} className="auth-form">
                                 <div className="form-group form-group--auth">
-                                    <label htmlFor="email" className="form-label">Email Address</label>
+                                    <label htmlFor="rider-email" className="form-label">Email Address</label>
                                     <input
                                         type="email"
-                                        id="email"
+                                        id="rider-email"
                                         className="form-input form-input--premium"
-                                        placeholder="your@email.com"
+                                        placeholder="rider@solestore.com"
                                         value={email}
                                         onChange={(event) => setEmail(event.target.value)}
                                         required
@@ -89,13 +77,11 @@ export default function Login() {
                                 </div>
 
                                 <div className="form-group form-group--auth">
-                                    <div className="form-label-row">
-                                        <label htmlFor="password" className="form-label">Password</label>
-                                    </div>
+                                    <label htmlFor="rider-password" className="form-label">Password</label>
                                     <div className="password-field-wrap">
                                         <input
                                             type={showPassword ? 'text' : 'password'}
-                                            id="password"
+                                            id="rider-password"
                                             className="form-input form-input--premium form-input--with-toggle"
                                             placeholder="Enter your password"
                                             value={password}
@@ -125,9 +111,6 @@ export default function Login() {
                                             )}
                                         </button>
                                     </div>
-                                    <Link to="/forgot-password" className="form-helper-link form-helper-link--below">
-                                        Forgot password?
-                                    </Link>
                                 </div>
 
                                 <button
@@ -135,34 +118,26 @@ export default function Login() {
                                     className="btn btn--primary btn--premium auth-submit"
                                     disabled={loading}
                                 >
-                                    {loading ? 'Signing in...' : 'Sign In'}
+                                    {loading ? 'Signing in...' : 'Login to Rider Panel'}
                                 </button>
                             </form>
 
                             <div className="auth-divider">
-                                <span>or</span>
+                                <span>New rider?</span>
                             </div>
 
                             <div className="auth-footer-section">
-                                <p className="auth-footer-text">Don't have an account?</p>
-                                <Link to="/signup" className="auth-footer-action auth-footer-action--primary">
-                                    Create New Account
+                                <Link to="/rider/register" className="auth-footer-inline-link">
+                                    Create Rider Account
                                 </Link>
                             </div>
 
                             <div className="auth-secondary-links">
-                                <Link to="/admin/login" className="auth-secondary-link">
-                                    Admin Access Portal
-                                </Link>
-                                <Link to="/rider/login" className="auth-secondary-link">
-                                    Rider Access Portal
+                                <Link to="/login" className="auth-secondary-link">
+                                    Back to User Login
                                 </Link>
                             </div>
                         </div>
-                    </div>
-
-                    <div className={`auth-card__visual-pane ${isPageMounted ? 'is-visible' : ''}`}>
-                        <AuthImageCarousel type="login" />
                     </div>
                 </div>
             </div>

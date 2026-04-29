@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'protectAdmin' => \App\Http\Middleware\ProtectAdmin::class,
             'protectUser' => \App\Http\Middleware\ProtectUser::class,
+            'protectRider' => \App\Http\Middleware\ProtectRider::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

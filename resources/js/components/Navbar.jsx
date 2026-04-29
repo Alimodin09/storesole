@@ -17,6 +17,7 @@ export default function Navbar() {
 	const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 	const [orders, setOrders] = useState([]);
 	const [notificationLoading, setNotificationLoading] = useState(false);
+	const [readNotificationIds, setReadNotificationIds] = useState(new Set());
 	const searchInputRef = useRef(null);
 	const searchWrapperRef = useRef(null);
 	const notificationRef = useRef(null);
@@ -71,18 +72,38 @@ export default function Navbar() {
 			navigate('/login');
 			return;
 		}
-		
+
 		if (isNotificationOpen) {
 			setIsNotificationOpen(false);
 			return;
 		}
 
 		setIsNotificationOpen(true);
+
+		// Mark all current notifications as read
+		const activeNotifs = getActiveNotifications();
+		if (activeNotifs.length > 0) {
+			const newReadIds = new Set(readNotificationIds);
+			activeNotifs.forEach((order) => newReadIds.add(getNotificationId(order)));
+			setReadNotificationIds(newReadIds);
+			saveReadIds(newReadIds);
+		}
+
 		if (orders.length === 0) {
 			setNotificationLoading(true);
 			try {
 				const { data } = await api.get('/user/orders');
 				setOrders(data || []);
+
+				// Mark fetched ones as read too
+				const activeStatuses = ['processing', 'ready for pickup', 'delivered', 'completed'];
+				const freshNotifs = (data || []).filter((o) =>
+					activeStatuses.includes(String(o.status || '').toLowerCase())
+				);
+				const freshReadIds = new Set(readNotificationIds);
+				freshNotifs.forEach((o) => freshReadIds.add(getNotificationId(o)));
+				setReadNotificationIds(freshReadIds);
+				saveReadIds(freshReadIds);
 			} catch (error) {
 				console.error('Failed to fetch orders:', error);
 				setOrders([]);
@@ -92,18 +113,49 @@ export default function Navbar() {
 		}
 	};
 
-	const getPendingOrderCount = () => {
-		const activeStatuses = ['pending', 'processing', 'ready for pickup'];
-		return orders.filter((order) => 
+	// Build a unique notification ID for an order
+	const getNotificationId = (order) => `order-${order.id}-${order.status}`;
+
+	// Load read notifications from localStorage on mount and when user changes
+	useEffect(() => {
+		const userId = authUser?.user?.id;
+		if (!userId) return;
+
+		const storageKey = `solestore_read_notifications_${userId}`;
+		try {
+			const stored = localStorage.getItem(storageKey);
+			if (stored) {
+				setReadNotificationIds(new Set(JSON.parse(stored)));
+			}
+		} catch (e) {
+			setReadNotificationIds(new Set());
+		}
+	}, [authUser?.user?.id]);
+
+	// Save read IDs to localStorage helper
+	const saveReadIds = (ids) => {
+		const userId = authUser?.user?.id;
+		if (!userId) return;
+
+		const storageKey = `solestore_read_notifications_${userId}`;
+		localStorage.setItem(storageKey, JSON.stringify([...ids]));
+	};
+
+	const getActiveNotifications = () => {
+		const activeStatuses = ['processing', 'ready for pickup', 'delivered', 'completed'];
+		return orders.filter((order) =>
 			activeStatuses.includes(String(order.status || '').toLowerCase())
+		);
+	};
+
+	const getUnreadCount = () => {
+		return getActiveNotifications().filter(
+			(order) => !readNotificationIds.has(getNotificationId(order))
 		).length;
 	};
 
 	const getRecentOrders = () => {
-		const activeStatuses = ['pending', 'processing', 'ready for pickup'];
-		return orders.filter((order) => 
-			activeStatuses.includes(String(order.status || '').toLowerCase())
-		).slice(0, 5);
+		return getActiveNotifications().slice(0, 5);
 	};
 
 	useEffect(() => {
@@ -292,9 +344,9 @@ export default function Navbar() {
 					aria-expanded={isNotificationOpen}
 				>
 					<Bell size={20} strokeWidth={2} />
-					{getPendingOrderCount() > 0 && (
+					{getUnreadCount() > 0 && (
 						<span className="navbar__badge navbar__badge--notification">
-							{getPendingOrderCount() > 9 ? '9+' : getPendingOrderCount()}
+							{getUnreadCount() > 9 ? '9+' : getUnreadCount()}
 						</span>
 					)}
 				</button>
@@ -318,10 +370,12 @@ export default function Navbar() {
 												</span>
 											</div>
 											<p className="navbar__notification-item-text">
-												{order.status === 'Pending' && 'Your order is being prepared.'}
-												{order.status === 'Processing' && 'Your order is being processed.'}
-												{order.status === 'Ready for Pickup' && 'Your order is ready for pickup!'}
-											</p>
+										{order.status === 'Pending' && 'Your order is being prepared.'}
+										{order.status === 'Processing' && 'Your order is being processed.'}
+										{order.status === 'Ready for Pickup' && 'Your order is ready for pickup!'}
+										{order.status === 'Delivered' && 'Your order has been delivered.'}
+										{order.status === 'Completed' && 'Your order is complete.'}
+									</p>
 											<button
 												type="button"
 												className="navbar__notification-link"

@@ -20,6 +20,10 @@ import AdminProductCreate from './pages/admin/ProductCreate.jsx';
 import AdminOrders from './pages/admin/Orders.jsx';
 import AdminOrderDetails from './pages/admin/OrderDetails.jsx';
 import AdminLogin from './pages/admin/AdminLogin.jsx';
+import RiderLogin from './pages/rider/RiderLogin.jsx';
+import RiderRegister from './pages/rider/RiderRegister.jsx';
+import RiderDashboard from './pages/rider/RiderDashboard.jsx';
+import RiderLayout from './layouts/RiderLayout.jsx';
 import RequireRole from './components/RequireRole.jsx';
 
 function NotFound() {
@@ -93,6 +97,21 @@ export default function App() {
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
+
+                <Route path="/rider/login" element={<RiderLogin />} />
+                <Route path="/rider/register" element={<RiderRegister />} />
+
+                <Route
+                    path="/rider"
+                    element={(
+                        <RequireRole role="rider" redirectTo="/rider/login">
+                            <RiderLayout />
+                        </RequireRole>
+                    )}
+                >
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route path="dashboard" element={<RiderDashboard />} />
+                </Route>
             </Routes>
         </BrowserRouter>
     );

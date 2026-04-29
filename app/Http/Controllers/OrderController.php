@@ -23,8 +23,9 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::with([
-            'user:id,name,email',
+            'user:id,name,email,phone',
             'orderItems.product:id,name,image,product_type,size',
+            'rider:id,name,phone',
         ])
             ->orderByDesc('created_at')
             ->get();
@@ -35,8 +36,9 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         return response()->json($order->load([
-            'user:id,name,email',
+            'user:id,name,email,phone',
             'orderItems.product:id,name,image,product_type,size',
+            'rider:id,name,phone',
         ]));
     }
 
@@ -47,6 +49,9 @@ class OrderController extends Controller
             'items.*.id' => ['required', 'integer', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.size' => ['nullable', 'string', 'max:50'],
+            'contact_name' => ['nullable', 'string', 'max:255'],
+            'contact_phone' => ['nullable', 'string', 'max:30'],
+            'delivery_address' => ['nullable', 'string', 'max:500'],
             'payment_method' => ['required', 'in:cod,cop'],
         ]);
 
@@ -85,6 +90,9 @@ class OrderController extends Controller
                 'total' => $total,
                 'status' => 'Pending',
                 'payment_method' => $validated['payment_method'],
+                'contact_name' => $validated['contact_name'] ?? $user->name,
+                'contact_phone' => $validated['contact_phone'] ?? $user->phone,
+                'delivery_address' => $validated['delivery_address'] ?? $user->address,
             ]);
 
             foreach ($lineItems as $lineItem) {
@@ -128,6 +136,7 @@ class OrderController extends Controller
         $record = Order::with([
             'orderItems.product:id,name,image,size',
             'user:id,name,email',
+            'rider:id,name,phone',
         ])
             ->where('user_id', $user->id)
             ->findOrFail($order);

@@ -167,6 +167,25 @@ export default function OrderDetails() {
                                 })}
                             </div>
                         </section>
+
+                        {order.rider && order.rider_status === 'accepted' && (
+                            <section className="order-section rider-info-section">
+                                <div className="order-section-head">
+                                    <h2>Delivery Rider Info</h2>
+                                </div>
+
+                                <div className="rider-info-grid">
+                                    <div className="rider-info-item">
+                                        <p className="rider-info-label">Rider Name</p>
+                                        <p className="rider-info-value">{order.rider.name}</p>
+                                    </div>
+                                    <div className="rider-info-item">
+                                        <p className="rider-info-label">Phone Number</p>
+                                        <p className="rider-info-value">{order.rider.phone}</p>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
                     </div>
 
                     <aside className="order-section order-summary-section">

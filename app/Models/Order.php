@@ -15,6 +15,11 @@ class Order extends Model
         'total',
         'status',
         'payment_method',
+        'contact_name',
+        'contact_phone',
+        'delivery_address',
+        'rider_id',
+        'rider_status',
     ];
 
     protected function casts(): array
@@ -32,5 +37,10 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function rider()
+    {
+        return $this->belongsTo(Rider::class);
     }
 }

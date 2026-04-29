@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPackage, FiUser, FiCreditCard, FiCalendar } from 'react-icons/fi';
+import { FiArrowLeft, FiPackage, FiUser, FiCreditCard, FiCalendar, FiTruck } from 'react-icons/fi';
 import api from '../../utils/api.js';
 import { formatPeso, getProductImageUrl } from '../../utils/format.js';
 
@@ -10,6 +10,8 @@ export default function AdminOrderDetails() {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [riders, setRiders] = useState([]);
+    const [assignLoading, setAssignLoading] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -41,6 +43,35 @@ export default function AdminOrderDetails() {
             active = false;
         };
     }, [id]);
+
+    useEffect(() => {
+        const fetchRiders = async () => {
+            try {
+                const { data } = await api.get('/riders');
+                setRiders(data);
+            } catch (error) {
+                // Silently fail - riders dropdown just won't populate
+            }
+        };
+
+        fetchRiders();
+    }, []);
+
+    const handleAssignRider = async (riderId) => {
+        if (!riderId) return;
+        setAssignLoading(true);
+
+        try {
+            const { data } = await api.post(`/orders/${id}/assign-rider`, {
+                rider_id: Number(riderId),
+            });
+            setOrder(data.order);
+        } catch (error) {
+            setErrorMessage(error?.response?.data?.message || 'Failed to assign rider.');
+        } finally {
+            setAssignLoading(false);
+        }
+    };
 
     const getStatusColor = (status) => {
         const statusColors = {
@@ -128,11 +159,19 @@ export default function AdminOrderDetails() {
                         <div className="card-body">
                             <div className="info-row">
                                 <span className="info-label">Name</span>
-                                <span className="info-value">{order.user?.name || 'Guest'}</span>
+                                <span className="info-value">{order.contact_name || order.user?.name || 'Guest'}</span>
                             </div>
                             <div className="info-row">
                                 <span className="info-label">Email</span>
                                 <span className="info-value">{order.user?.email || '-'}</span>
+                            </div>
+                            <div className="info-row">
+                                <span className="info-label">Phone</span>
+                                <span className="info-value">{order.contact_phone || order.user?.phone || 'No phone number provided'}</span>
+                            </div>
+                            <div className="info-row">
+                                <span className="info-label">Address</span>
+                                <span className="info-value">{order.delivery_address || order.user?.address || 'No address provided'}</span>
                             </div>
                         </div>
                     </div>
@@ -238,6 +277,58 @@ export default function AdminOrderDetails() {
                     >
                         <FiArrowLeft /> Back to Orders
                     </button>
+
+                    {/* Assign Rider */}
+                    <div className="order-card">
+                        <div className="card-header">
+                            <div className="header-icon-wrapper">
+                                <FiTruck className="card-icon" />
+                            </div>
+                            <h2 className="card-title">Assign Rider</h2>
+                        </div>
+                        <div className="card-body">
+                            {order.rider ? (
+                                <div className="rider-assigned-info">
+                                    <div className="info-row">
+                                        <span className="info-label">Assigned to</span>
+                                        <span className="info-value rider-assigned-name">{order.rider.name}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Phone</span>
+                                        <span className="info-value">{order.rider.phone}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Status</span>
+                                        <span className={`info-value rider-status-badge rider-status-badge--${order.rider_status || 'pending'}`}>
+                                            {order.rider_status || 'pending'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="rider-assign-form">
+                                    {riders.length === 0 ? (
+                                        <p className="rider-no-available">No available riders</p>
+                                    ) : (
+                                        <select
+                                            className="rider-select"
+                                            onChange={(e) => handleAssignRider(e.target.value)}
+                                            disabled={assignLoading}
+                                            defaultValue=""
+                                        >
+                                            <option value="" disabled>
+                                                {assignLoading ? 'Assigning...' : 'Select a rider'}
+                                            </option>
+                                            {riders.map((rider) => (
+                                                <option key={rider.id} value={rider.id}>
+                                                    {rider.name} - {rider.phone}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

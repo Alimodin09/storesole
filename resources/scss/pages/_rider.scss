@@ -1,0 +1,576 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+/* ============================================================================
+   RIDER PAGES - Dashboard, Assign Rider, Customer Rider Info
+   ============================================================================ */
+
+/* --- Rider Auth Page (login/register) --- */
+.page--auth-rider {
+  min-height: 100vh;
+}
+
+.page--auth-rider .auth-heading {
+  font-size: clamp(2.2rem, 3.2vw, 3rem);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #0f1f3a 0%, #1a3a5c 50%, #0b5ed7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.page--auth-rider .auth-subtitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #5a6f8d;
+  letter-spacing: 0.005em;
+  line-height: 1.7;
+}
+
+/* --- Rider Dashboard --- */
+.page--rider-dashboard {
+  padding: 0.5rem;
+}
+
+.rider-dashboard-header {
+  margin-bottom: 1.5rem;
+}
+
+.rider-dashboard-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #0f1f3a;
+}
+
+.rider-dashboard-subtitle {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #5c6b85;
+}
+
+/* --- Tabs --- */
+.rider-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0;
+}
+
+.rider-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #6b7a90;
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -2px;
+
+  &:hover {
+    color: #0f1f3a;
+  }
+}
+
+.rider-tab--active {
+  color: $color-primary;
+  border-bottom-color: $color-primary;
+}
+
+.rider-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  border-radius: 10px;
+  background: $color-primary;
+  color: #ffffff;
+}
+
+/* --- Alerts --- */
+.rider-alert {
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.rider-alert--success {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  color: #166534;
+}
+
+.rider-alert--error {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  color: #a01f1f;
+}
+
+.rider-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #5c6b85;
+  font-size: 0.95rem;
+}
+
+.rider-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #5c6b85;
+
+  h2 {
+    margin: 1rem 0 0.4rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f1f3a;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+}
+
+.rider-empty-icon {
+  color: #b0bfd4;
+}
+
+.rider-orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+}
+
+/* --- Rider Order Card --- */
+.rider-order-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 38, 84, 0.05);
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(15, 38, 84, 0.1);
+    transform: translateY(-2px);
+  }
+}
+
+.rider-order-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(135deg, #f8faff 0%, #f3f7ff 100%);
+}
+
+.rider-order-id {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f1f3a;
+  letter-spacing: -0.01em;
+}
+
+.rider-order-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+}
+
+.rider-order-badge--pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.rider-order-badge--active {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.rider-order-badge--delivered {
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.rider-order-card__body {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.rider-order-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.rider-order-info-icon {
+  width: 16px;
+  height: 16px;
+  color: #6ea8fe;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.rider-order-info-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #9aacbe;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rider-order-info-value {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f1f3a;
+  margin-top: 0.05rem;
+}
+
+.rider-order-info-value--highlight {
+  color: $color-primary;
+  font-weight: 800;
+}
+
+/* --- Product List in Card --- */
+.rider-order-products {
+  padding-top: 0.6rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.rider-order-products-title {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #9aacbe;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.rider-order-product-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.4rem 0;
+
+  & + & {
+    border-top: 1px solid #f8fafc;
+  }
+}
+
+.rider-order-product-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.rider-order-product-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rider-order-product-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f1f3a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rider-order-product-meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8898aa;
+}
+
+.rider-order-items-summary {
+  padding-top: 0.4rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.rider-order-items-count {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #5c6b85;
+}
+
+.rider-order-card__actions {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfd;
+}
+
+.rider-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.rider-btn--accept {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+.rider-btn--reject {
+  background: #ffffff;
+  color: #dc2626;
+  border: 1.5px solid rgba(220, 38, 38, 0.2);
+
+  &:hover:not(:disabled) {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: rgba(220, 38, 38, 0.35);
+  }
+
+  &:active:not(:disabled) {
+    background: rgba(220, 38, 38, 0.1);
+  }
+}
+
+.rider-btn--deliver {
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(29, 78, 216, 0.35);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+/* --- Call Customer Button --- */
+.rider-call-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #059669;
+  background: rgba(5, 150, 105, 0.08);
+  border: 1.5px solid rgba(5, 150, 105, 0.18);
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(5, 150, 105, 0.14);
+    border-color: rgba(5, 150, 105, 0.3);
+    color: #047857;
+  }
+}
+
+/* --- Admin: Assign Rider Card Styles --- */
+.rider-assign-form {
+  margin-top: 0.25rem;
+}
+
+.rider-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f1f3a;
+  background: #f8fafb;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235c6b85' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+
+  &:hover {
+    background-color: #ffffff;
+    border-color: #d4dce8;
+  }
+
+  &:focus {
+    outline: none;
+    background-color: #ffffff;
+    border-color: $color-primary;
+    box-shadow:
+      0 0 0 4px rgba(11, 94, 215, 0.06),
+      0 4px 12px rgba(11, 94, 215, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.rider-assigned-name {
+  font-weight: 800;
+  color: $color-primary;
+}
+
+.rider-no-available {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #9aacbe;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.rider-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.rider-status-badge--pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
+.rider-status-badge--accepted {
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+}
+
+.rider-status-badge--rejected {
+  background: rgba(220, 38, 38, 0.1);
+  color: #a01f1f;
+}
+
+.rider-status-badge--delivered {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}
+
+/* --- Customer: Rider Info Section --- */
+.rider-info-section {
+  margin-top: 1.25rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+}
+
+.rider-info-section .order-section-head h2 {
+  color: #166534;
+}
+
+.rider-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.8rem;
+}
+
+.rider-info-item {
+  padding: 0.8rem 1rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.12);
+}
+
+.rider-info-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #5c6b85;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rider-info-value {
+  margin: 0.3rem 0 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f1f3a;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .rider-orders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rider-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rider-order-card__actions {
+    flex-direction: column;
+  }
+
+  .rider-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
